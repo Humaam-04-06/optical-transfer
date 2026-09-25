@@ -549,3 +549,193 @@ h1, h2, h3, h4, h5, h6 {
   100% { background-position: 34px 0; }
 }
 
+/* ==========================================================================
+   Playful Geometric Dark Mode ("Midnight Arcade")
+   ========================================================================== */
+
+html.dark, html.dark body {
+  background-color: #0B0F19;
+  color: #F8FAFC;
+}
+
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: #F8FAFC !important;
+}
+
+html.dark p,
+html.dark span {
+  color: inherit;
+}
+
+/* Navigation & Header */
+html.dark .navbar-playful {
+  background-color: #0F172A;
+  border-color: #334155;
+}
+
+html.dark #mobileDrawer {
+  background-color: #0F172A;
+  border-color: #334155;
+}
+
+html.dark .mobile-nav-link {
+  color: #F8FAFC;
+}
+
+html.dark .mobile-nav-link:hover {
+  background-color: #1E293B;
+}
+
+html.dark .nav-pill-group {
+  background-color: #1E293B;
+  border-color: #334155;
+  box-shadow: 2px 2px 0px 0px #000000;
+}
+
+html.dark .nav-pill-item {
+  color: #94A3B8;
+}
+
+html.dark .nav-pill-item:hover {
+  color: #F8FAFC;
+}
+
+html.dark .nav-pill-item.active {
+  background-color: #FBBF24;
+  color: #1E293B;
+  box-shadow: 2px 2px 0px 0px #000000;
+}
+
+/* Dot Grid Background Texture */
+html.dark .bg-dot-grid {
+  background-image: radial-gradient(#334155 1.5px, transparent 1.5px);
+}
+
+/* Pop Shadows in Dark Mode */
+html.dark .shadow-pop-sm {
+  box-shadow: 2px 2px 0px 0px #000000;
+}
+
+html.dark .shadow-pop {
+  box-shadow: 4px 4px 0px 0px #000000;
+}
+
+html.dark .shadow-pop-lg {
+  box-shadow: 6px 6px 0px 0px #000000;
+}
+
+html.dark .shadow-pop-xl {
+  box-shadow: 8px 8px 0px 0px #000000;
+}
+
+/* Cards & Containers */
+html.dark .card-sticker {
+  background-color: #1E293B;
+  border-color: #334155;
+  box-shadow: 6px 6px 0px 0px #000000;
+  color: #F8FAFC;
+}
+
+html.dark .card-sticker:hover {
+  box-shadow: 8px 8px 0px 0px #000000;
+}
+
+html.dark .card-sticker-yellow:hover {
+  box-shadow: 8px 8px 0px 0px #FBBF24;
+}
+
+html.dark .card-sticker-pink:hover {
+  box-shadow: 8px 8px 0px 0px #F472B6;
+}
+
+html.dark .card-sticker-mint:hover {
+  box-shadow: 8px 8px 0px 0px #34D399;
+}
+
+/* Nested Surfaces */
+html.dark .card-sticker .bg-white,
+html.dark .card-sticker .bg-\[\#FFFDF5\],
+html.dark .card-sticker .bg-\[\#F8FAFC\],
+html.dark .card-sticker .bg-\[\#F1F5F9\],
+html.dark .bg-\[\#F8FAFC\],
+html.dark .bg-\[\#FFFDF5\] {
+  background-color: #0F172A;
+  border-color: #334155;
+  color: #F8FAFC;
+}
+
+html.dark #standbyPlaceholder,
+html.dark #cameraStandbyPlaceholder {
+  background-color: #0F172A;
+  color: #F8FAFC;
+}
+
+html.dark #dropzoneContent {
+  background-color: #0F172A;
+  border-color: #334155;
+}
+
+html.dark #dropzoneContent:hover {
+  background-color: #1E1B4B;
+  border-color: #8B5CF6;
+}
+
+/* Inputs & Form Controls */
+html.dark .input-geometric {
+  background-color: #0F172A;
+  border-color: #334155;
+  color: #F8FAFC;
+}
+
+html.dark .input-geometric:focus {
+  border-color: #8B5CF6;
+  box-shadow: 4px 4px 0px 0px #8B5CF6;
+}
+
+/* Secondary Candy Buttons */
+html.dark .btn-candy-secondary {
+  background-color: #1E293B;
+  color: #F8FAFC;
+  border-color: #475569;
+  box-shadow: 4px 4px 0px 0px #000000;
+}
+
+html.dark .btn-candy-secondary:hover {
+  background-color: #FBBF24;
+  color: #1E293B;
+  border-color: #1E293B;
+  box-shadow: 6px 6px 0px 0px #000000;
+}
+
+/* Text overrides in Dark Mode */
+html.dark .text-\[\#1E293B\] {
+  color: #F8FAFC;
+}
+
+html.dark .text-\[\#64748B\] {
+  color: #94A3B8;
+}
+
+html.dark .border-\[\#1E293B\] {
+  border-color: #334155;
+}
+
+html.dark .border-\[\#CBD5E1\],
+html.dark .border-\[\#E2E8F0\] {
+  border-color: #334155;
+}
+
+/* Toast Dark Mode */
+html.dark .toast-item {
+  background: #1E293B;
+  border-color: #334155;
+  box-shadow: 4px 4px 0px 0px #000000;
+  color: #F8FAFC;
+}
+
+

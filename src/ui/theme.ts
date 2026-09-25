@@ -42,3 +42,33 @@ export const PlayfulTheme = {
   },
   borderWidth: '2px',
 };
+
+export class ThemeManager {
+  private static STORAGE_KEY = 'spectrabeam_theme';
+
+  public static init(): void {
+    const saved = localStorage.getItem(this.STORAGE_KEY);
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = saved ? saved === 'dark' : prefersDark;
+    this.applyTheme(isDark);
+  }
+
+  public static isDark(): boolean {
+    return document.documentElement.classList.contains('dark');
+  }
+
+  public static toggle(): boolean {
+    const willBeDark = !this.isDark();
+    this.applyTheme(willBeDark);
+    localStorage.setItem(this.STORAGE_KEY, willBeDark ? 'dark' : 'light');
+    return willBeDark;
+  }
+
+  public static applyTheme(isDark: boolean): void {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }
+}

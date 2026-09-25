@@ -9,6 +9,9 @@ import { Router } from './ui/navigation.ts';
 import { PageRoute } from './core/types.ts';
 import { Icons } from './ui/icons.ts';
 import { Alert } from './ui/alert.ts';
+import { ThemeManager } from './ui/theme.ts';
+import { Toast } from './ui/toast.ts';
+import { SoundFX } from './ui/audio.ts';
 import { SendPage } from './modules/send/send-page.ts';
 import { ReceivePage } from './modules/receive/receive-page.ts';
 import { EnclavePage } from './modules/enclave/enclave-page.ts';
@@ -21,6 +24,7 @@ class App {
   private mobileMenuOpen = false;
 
   constructor() {
+    ThemeManager.init();
     this.appEl = document.getElementById('app')!;
     this.initShell();
     Router.init();
@@ -82,12 +86,17 @@ class App {
           </ul>
         </nav>
 
-        <!-- Right Side: Security Pill & Mobile Hamburger -->
-        <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Right Side: Security Pill, Theme Toggle & Mobile Hamburger -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
           <div class="hidden lg:flex items-center gap-2 bg-[#34D399] text-[#1E293B] font-heading font-extrabold text-xs px-3.5 py-1.5 rounded-full border-2 border-[#1E293B] shadow-pop-sm select-none hover-wiggle cursor-pointer" id="btnAirGapPill" title="Click to view air-gap guarantee">
             <span class="w-2 h-2 rounded-full bg-[#1E293B] animate-pulse"></span>
             <span>ZERO-NETWORK AIR-GAP</span>
           </div>
+
+          <!-- Dark Mode Toggle Button -->
+          <button id="btnThemeToggle" class="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 bg-white border-2 border-[#1E293B] rounded-xl shadow-pop-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex-shrink-0 cursor-pointer text-[#1E293B]" title="Toggle Dark / Light Theme" aria-label="Toggle Dark / Light Theme">
+            <span id="themeToggleIcon">${ThemeManager.isDark() ? Icons.sun : Icons.moon}</span>
+          </button>
 
           <!-- Mobile Menu Button -->
           <button id="mobileMenuBtn" class="md:hidden flex items-center justify-center w-10 h-10 bg-white border-2 border-[#1E293B] rounded-xl shadow-pop-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex-shrink-0" aria-label="Toggle Navigation Menu">
@@ -113,6 +122,15 @@ class App {
         <a href="#benchmark" class="mobile-nav-link flex items-center gap-2.5 p-3 rounded-xl font-heading font-bold text-[#1E293B] border-2 border-transparent transition-all" data-route="benchmark">
           ${Icons.activity} Diagnostics Lab
         </a>
+
+        <!-- Mobile Dark Mode Toggle -->
+        <div class="pt-3 border-t-2 border-[#1E293B] flex items-center justify-between px-2">
+          <span class="font-heading font-extrabold text-sm text-[#1E293B]">Appearance</span>
+          <button id="mobileThemeToggle" class="btn-candy btn-candy-secondary btn-candy-sm text-xs gap-1.5 cursor-pointer">
+            <span id="mobileThemeIcon">${ThemeManager.isDark() ? Icons.sun : Icons.moon}</span>
+            <span id="mobileThemeLabel">${ThemeManager.isDark() ? 'Light Mode' : 'Dark Mode'}</span>
+          </button>
+        </div>
       </div>
 
       <!-- Main Page Viewport Container -->
@@ -128,6 +146,8 @@ class App {
     const mobileDrawer = this.appEl.querySelector('#mobileDrawer');
     const mobileIcon = this.appEl.querySelector('#mobileMenuIcon');
     const airGapPill = this.appEl.querySelector('#btnAirGapPill');
+    const btnThemeToggle = this.appEl.querySelector('#btnThemeToggle');
+    const mobileThemeToggle = this.appEl.querySelector('#mobileThemeToggle');
 
     mobileBtn?.addEventListener('click', () => {
       this.mobileMenuOpen = !this.mobileMenuOpen;
@@ -136,6 +156,27 @@ class App {
         mobileIcon.innerHTML = this.mobileMenuOpen ? Icons.close : Icons.menu;
       }
     });
+
+    // Theme toggle events
+    const updateThemeUI = (isDark: boolean) => {
+      const icon = isDark ? Icons.sun : Icons.moon;
+      const desktopIcon = this.appEl.querySelector('#themeToggleIcon');
+      const mobileIconEl = this.appEl.querySelector('#mobileThemeIcon');
+      const mobileLabel = this.appEl.querySelector('#mobileThemeLabel');
+      if (desktopIcon) desktopIcon.innerHTML = icon;
+      if (mobileIconEl) mobileIconEl.innerHTML = icon;
+      if (mobileLabel) mobileLabel.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+    };
+
+    const handleThemeToggle = () => {
+      const isDark = ThemeManager.toggle();
+      updateThemeUI(isDark);
+      SoundFX.playPacketTick();
+      Toast.show(isDark ? 'Switched to Midnight Dark Mode 🌙' : 'Switched to Warm Cream Light Mode ☀️', 'info');
+    };
+
+    btnThemeToggle?.addEventListener('click', handleThemeToggle);
+    mobileThemeToggle?.addEventListener('click', handleThemeToggle);
 
     // Close drawer on link click
     const mobileLinks = this.appEl.querySelectorAll('.mobile-nav-link');
