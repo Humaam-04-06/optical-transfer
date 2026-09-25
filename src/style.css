@@ -799,4 +799,12 @@ html.dark #mobileMenuBtn {
   border-color: #334155 !important;
 }
 
+/* Ensure Mobile Menu Button and Drawer are NEVER shown on desktop (>= 768px) */
+@media (min-width: 768px) {
+  #mobileMenuBtn,
+  #mobileDrawer {
+    display: none !important;
+  }
+}
+
 
