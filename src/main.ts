@@ -27,8 +27,8 @@ class App {
     ThemeManager.init();
     this.appEl = document.getElementById('app')!;
     this.initShell();
-    Router.init();
     Router.subscribe((route) => this.onRouteChanged(route));
+    Router.init();
   }
 
   private initShell(): void {
