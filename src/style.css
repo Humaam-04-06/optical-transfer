@@ -4,6 +4,7 @@
    Playful Geometric Design System - SpectraBeam
    Theme Philosophy: "Stable Grid, Wild Decoration"
    Friendly. Tactile. Pop. Energetic.
+   100% Fluid & Responsive on Every Screen Size
    ========================================================================== */
 
 @theme {
@@ -40,6 +41,8 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -116,6 +119,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   font-size: 0.95rem;
   padding: 0.75rem 1.6rem;
+  min-height: 48px; /* Accessible mobile touch target */
   border-radius: 9999px;
   border: 2px solid #1E293B;
   background-color: #8B5CF6;
@@ -125,6 +129,7 @@ h1, h2, h3, h4, h5, h6 {
   text-decoration: none;
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   user-select: none;
+  white-space: nowrap;
 }
 
 .btn-candy:hover {
@@ -178,6 +183,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-candy-sm {
   padding: 0.45rem 1rem;
+  min-height: 38px;
   font-size: 0.85rem;
   box-shadow: 3px 3px 0px 0px #1E293B;
 }
@@ -185,6 +191,10 @@ h1, h2, h3, h4, h5, h6 {
 .btn-candy-sm:hover {
   transform: translate(-1px, -1px);
   box-shadow: 4px 4px 0px 0px #1E293B;
+}
+
+.btn-full {
+  width: 100%;
 }
 
 /* ==========================================================================
@@ -196,9 +206,15 @@ h1, h2, h3, h4, h5, h6 {
   border: 2px solid #1E293B;
   border-radius: 20px;
   box-shadow: 6px 6px 0px 0px #1E293B;
-  padding: 1.75rem;
+  padding: 1.5rem;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
+}
+
+@media (min-width: 640px) {
+  .card-sticker {
+    padding: 1.75rem;
+  }
 }
 
 .card-sticker:hover {
@@ -238,16 +254,24 @@ h1, h2, h3, h4, h5, h6 {
 .badge-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.9rem;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
   border-radius: 9999px;
   border: 2px solid #1E293B;
   box-shadow: 2px 2px 0px 0px #1E293B;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .badge-pill {
+    padding: 0.4rem 0.95rem;
+    font-size: 0.8rem;
+  }
 }
 
 .badge-yellow {
@@ -339,33 +363,43 @@ h1, h2, h3, h4, h5, h6 {
 
 .toast-container {
   position: fixed;
-  bottom: 28px;
-  right: 28px;
+  bottom: 24px;
+  right: 24px;
+  left: 24px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .toast-container {
+    left: auto;
+    right: 28px;
+    bottom: 28px;
+    max-width: 400px;
+  }
 }
 
 .toast-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 20px;
+  padding: 12px 18px;
   border-radius: 16px;
   background: #FFFFFF;
   border: 2px solid #1E293B;
-  box-shadow: 5px 5px 0px 0px #1E293B;
+  box-shadow: 4px 4px 0px 0px #1E293B;
   color: #1E293B;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 0.95rem;
-  transform: translateY(24px) scale(0.9);
+  font-size: 0.9rem;
+  transform: translateY(20px) scale(0.92);
   opacity: 0;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: auto;
-  min-width: 300px;
+  width: 100%;
 }
 
 .toast-visible {
@@ -378,9 +412,42 @@ h1, h2, h3, h4, h5, h6 {
   height: 12px;
   border-radius: 9999px;
   border: 2px solid #1E293B;
+  flex-shrink: 0;
 }
 
 .toast-success .toast-indicator { background: #34D399; }
 .toast-error .toast-indicator { background: #F472B6; }
 .toast-warning .toast-indicator { background: #FBBF24; }
 .toast-info .toast-indicator { background: #8B5CF6; }
+
+/* ==========================================================================
+   100% Responsive Screen Breakpoint Adaptations
+   ========================================================================== */
+
+/* Small Phones (< 480px) */
+@media (max-width: 480px) {
+  .shadow-pop-xl {
+    box-shadow: 5px 5px 0px 0px #1E293B;
+  }
+  .shadow-pop-lg {
+    box-shadow: 4px 4px 0px 0px #1E293B;
+  }
+  .shadow-pop {
+    box-shadow: 3px 3px 0px 0px #1E293B;
+  }
+  .shadow-pop-pink {
+    box-shadow: 4px 4px 0px 0px #F472B6;
+  }
+  .shadow-pop-yellow {
+    box-shadow: 4px 4px 0px 0px #FBBF24;
+  }
+  .shadow-pop-mint {
+    box-shadow: 4px 4px 0px 0px #34D399;
+  }
+
+  .btn-candy {
+    width: 100%;
+    font-size: 0.9rem;
+    padding: 0.7rem 1.25rem;
+  }
+}
