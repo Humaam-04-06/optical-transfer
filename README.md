@@ -14,6 +14,12 @@
 
 </div>
 
+> **⚡ High-speed, zero-network optical air-gap data transfer system using Luby Transform fountain codes, WebAssembly ZXing, and SpectraVault AES-256-GCM encryption.**  
+> Transmit confidential documents, archives, recovery phrases, and cold-storage Bitcoin PSBTs through pure visible light without Wi-Fi, Bluetooth, NFC, or USB cables.
+
+### 🏷️ Topics & Tags
+`#air-gap` • `#optical-transfer` • `#fountain-codes` • `#luby-transform` • `#qr-code` • `#webassembly` • `#zxing` • `#aes-256-gcm` • `#cryptography` • `#cold-storage` • `#bitcoin-psbt` • `#offline-first` • `#pwa` • `#capacitor` • `#android` • `#zero-trust` • `#cybersecurity` • `#privacy` • `#typescript` • `#tailwind-css`
+
 ---
 
 ## 📖 Table of Contents
