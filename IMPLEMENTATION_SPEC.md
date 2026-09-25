@@ -290,50 +290,70 @@ d:\OPTICAL_TRANSFER\
 
 ---
 
-## 8. Detailed Execution Roadmap
+## 8. Modular Step-by-Step Execution Plan (Phase-by-Phase Breakdown)
 
-### STAGE 1: WEB APPLICATION (Website First)
+To maintain absolute control over quality, design, and functionality, the development is divided into small, modular parts. 
 
-* **Phase 1: Project Setup & Foundation Core**:
-  * Initialize Vite + TypeScript environment in `d:\OPTICAL_TRANSFER`.
-  * Create high-performance cyber-enclave dark CSS design system with responsive mobile/desktop layouts.
-  * Port and optimize the core Luby Transform fountain code & deterministic Soliton PRNG.
-  * Integrate the WebAssembly ZXing decoder and multi-worker pool.
-* **Phase 2: SpectraVault Security Layer**:
-  * Implement WebCrypto AES-256-GCM authenticated encryption on the wire format.
-  * Add passphrase derivation with PBKDF2 + dynamic Salt.
-  * Add ephemeral in-memory Decrypt-and-Burn protection.
-  * Build anti-shoulder-surfing visual noise / polarity stroboscopic toggle.
-* **Phase 3: High-FPS Sender & Receiver Core**:
-  * Pinned-mask QR rasterizer on HTML5 Canvas (30–60 FPS loop).
-  * WebRTC camera stream handler with torch, continuous focus & alignment reticle.
-  * Real-time decoding HUD (FPS, goodput KB/s, fountain peeling status).
-  * APNG animation & PNG sequence ZIP export for offline broadcasts.
-* **Phase 4: ChromaBeam RGB Multi-Channel Multiplexing (Turbo Mode)**:
-  * RGB Tri-stream encoder (independent fountain frames in Red, Green, Blue channels).
-  * Canvas color splitter separating R, G, B channels.
-  * Tri-worker parallel WASM decode pipeline for 1+ MB/s transfers.
-* **Phase 5: AirEnclave Cold-Storage Modules & Web Polish**:
-  * Bitcoin PSBT & offline crypto transaction viewer.
-  * Service worker offline manifest & asset caching for 100% offline usage.
-  * Thorough cross-browser verification (Chrome, Firefox, Safari, Edge, Mobile Chrome, Mobile Safari).
+> [!IMPORTANT]
+> **Design & Workflow Directive**:
+> - **Styling Framework**: Tailwind CSS v4 (`@tailwindcss/vite`).
+> - **Visual Theme**: **"Playful Geometric"** aesthetic (bold geometric shapes, clean rounded containers, vibrant colors, expressive micro-interactions) replacing generic dark cyber HUDs.
+> - **Interactive Section-by-Section Collaboration**: Each UI component and page section is built collaboratively—the user provides specific section prompts or direct code implementations, which are then integrated and tested step by step.
+> - **Active GitHub Repository**: Private repository at `https://github.com/Humaam-04-06/optical-transfer` under account `Humaam-04-06`.
 
----
-
-### STAGE 2: MOBILE ANDROID APP (APK Packaging)
-
-* **Phase 6: Capacitor Android Integration**:
-  * Initialize Capacitor tooling and add Android platform (`@capacitor/android`).
-  * Sync the compiled web build (`dist/`) into the native Android shell.
-* **Phase 7: Native Android Hardware Optimizations**:
-  * Implement native Android Camera2 provider for low-latency, high-framerate viewfinder.
-  * Add hardware Flashlight/Torch toggle via native Android API.
-  * Enable native `FLAG_KEEP_SCREEN_ON` (WakeLock) to prevent screen sleep during long fountain streams.
-  * Wire native file saving to Android's `Download/` directory and Android Share Sheet.
-* **Phase 8: APK Compilation & Standalone Release**:
-  * Configure Android permissions (`CAMERA`, `WRITE_EXTERNAL_STORAGE`, `WAKE_LOCK`).
-  * Build release `.apk` (Debug & Release builds) using Gradle.
-  * Verify sideloading and standalone execution on an offline Android device.
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        PROJECT ROADMAP (PART BY PART)                  │
+├────────────────────────────────────────────────────────────────────────┤
+│  STAGE 1: WEB APPLICATION (Website First)                              │
+│                                                                        │
+│  [Part 1] Styling Foundation & Playful Geometric Design System Tokens  │
+│           • Tailwind CSS configuration, bold geometric borders,        │
+│             playful color tokens, custom rounded cards, and badges.    │
+│                                                                        │
+│  [Part 2] Navigation Bar & Brand Header                                │
+│           • Playful logo, active route pills, and zero-network         │
+│             offline security badge (per user prompt/code).             │
+│                                                                        │
+│  [Part 3] Home / Landing Hero Section                                  │
+│           • Geometric hero banner, interactive CTA buttons, and        │
+│             feature launch cards (per user prompt/code).               │
+│                                                                        │
+│  [Part 4] Optical Transmitter Page: Upload & Input Sections            │
+│           • Playful file dropzone, text snippet input box, and payload │
+│             loader.                                                    │
+│                                                                        │
+│  [Part 5] Optical Transmitter Page: Live Canvas & Controls             │
+│           • Animated QR fountain canvas, FPS switcher, and loop        │
+│             animation exporter.                                        │
+│                                                                        │
+│  [Part 6] SpectraVault™ E2EE Security Section                          │
+│           • Passphrase modal, AES-256-GCM toggle, and anti-surveillance│
+│             strobe options.                                            │
+│                                                                        │
+│  [Part 7] Optical Receiver Page: Viewfinder & Reticle HUD              │
+│           • Camera viewfinder with playful geometric alignment frame,  │
+│             camera switch, and torch toggle.                           │
+│                                                                        │
+│  [Part 8] Optical Receiver Page: Telemetry Speedometer & Progress      │
+│           • Real-time Goodput KB/s speedometer, blocks progress bar,   │
+│             and completion confetti burst.                             │
+│                                                                        │
+│  [Part 9] Reception Result & Media Viewer                              │
+│           • In-browser preview (video/audio/image/text), download      │
+│             button, and Burn-After-Reading RAM purge.                  │
+│                                                                        │
+│  [Part 10] AirEnclave & Diagnostics Lab Views                          │
+│           • Bitcoin PSBT offline signer HUD and ChromaLab benchmarks.  │
+│                                                                        │
+├────────────────────────────────────────────────────────────────────────┤
+│  STAGE 2: MOBILE ANDROID APP (APK Packaging)                           │
+│                                                                        │
+│  [Part 11] Capacitor Android Setup & Native Camera Bindings            │
+│           • Build standalone `.apk` with native Camera2, torch, and    │
+│             WakeLock for air-gapped physical phones.                   │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -342,5 +362,7 @@ d:\OPTICAL_TRANSFER\
 1. **Dual Accessibility**: Instant web access anywhere via URL, plus a standalone sideloadable APK for completely air-gapped physical phones.
 2. **Solves the #1 Real-World Flaw of Optical Transfer**: Decimen's README explicitly admits it has zero confidentiality. Adding **SpectraVault (E2EE + Anti-Surveillance)** makes this an actual secure tool for journalists, privacy advocates, crypto holders, and security professionals.
 3. **Pioneering Throughput with ChromaBeam**: Jumping from 1-bit monochrome to 3-channel RGB is an impressive technical milestone that pushes visual light transfer into the megabyte-per-second realm.
-4. **Practical Air-Gapped Utility**: Integrating offline transaction signing (PSBT) transforms this from an experimental proof-of-concept into a viable alternative to dedicated hardware wallets.
-5. **100% Zero-Trust & Serverless**: Runs completely client-side, works completely offline, and leaves zero telemetry traces.
+4. **Playful Geometric UX**: A welcoming, vibrant, and approachable interface that eliminates the intimidating feel of cryptographic and air-gapped command line tools.
+5. **Practical Air-Gapped Utility**: Integrating offline transaction signing (PSBT) transforms this from an experimental proof-of-concept into a viable alternative to dedicated hardware wallets.
+6. **100% Zero-Trust & Serverless**: Runs completely client-side, works completely offline, and leaves zero telemetry traces.
+
