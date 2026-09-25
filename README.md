@@ -6,7 +6,7 @@
 
 ### Zero-Network • Zero-RF • Zero-Pairing • Pure Photon Data Transmission
 
-[![Release APK](https://img.shields.io/badge/Download_APK-v1.0.0_Release-8B5CF6?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.0)
+[![Release APK](https://img.shields.io/badge/Download_APK-v1.0.1_Release-8B5CF6?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.1)
 [![Zero Network Air Gap](https://img.shields.io/badge/Air--Gap-100%25_Zero--RF-34D399?style=for-the-badge&logo=shield&logoColor=1E293B)](#-zero-trust-security-model)
 [![WebAssembly](https://img.shields.io/badge/WASM-ZXing--C++_Decoder-FBBF24?style=for-the-badge&logo=webassembly&logoColor=1E293B)](#-technical-architecture)
 [![Encryption](https://img.shields.io/badge/SpectraVault-AES--256--GCM-F472B6?style=for-the-badge&logo=lock&logoColor=white)](#-spectravault-zero-knowledge-encryption)
@@ -62,14 +62,14 @@ SpectraBeam transmits digital payloads exclusively via **photons (visible light)
 
 A standalone signed Android APK is published and available for direct installation:
 
-👉 **GitHub Release v1.0.0:** [https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.0](https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.0)  
-👉 **Direct APK Download Link:** [SpectraBeam.apk (4.5 MB)](https://github.com/Humaam-04-06/optical-transfer/releases/download/v1.0.0/SpectraBeam.apk)
+👉 **GitHub Release v1.0.1:** [https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.1](https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.1)  
+👉 **Direct APK Download Link:** [SpectraBeam.apk](https://github.com/Humaam-04-06/optical-transfer/releases/download/v1.0.1/SpectraBeam.apk)
 
 ### 📲 How to Install & Run on Your Android Device:
 
 #### Option A: Direct Download via Mobile Browser
 1. On your Android phone, open Chrome or your preferred browser.
-2. Visit [https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.0](https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.0).
+2. Visit [https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.1](https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.1).
 3. Under **Assets**, tap **`SpectraBeam.apk`**.
 4. Once downloaded, tap the notification or open your phone's **Downloads** folder.
 5. If Android displays *"For your security, your phone is not allowed to install unknown apps from this source"*:
@@ -81,7 +81,7 @@ A standalone signed Android APK is published and available for direct installati
 #### Option B: Via the GitHub Mobile App
 1. Open the **GitHub Mobile App** on your phone (logged into your account).
 2. Open your repository: **`optical-transfer`**.
-3. Scroll to the **Releases** section and tap **v1.0.0**.
+3. Scroll to the **Releases** section and tap **v1.0.1**.
 4. Under **Assets**, tap **`SpectraBeam.apk`** to download and install.
 
 ---

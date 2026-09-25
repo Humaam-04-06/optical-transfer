@@ -134,7 +134,7 @@ class App {
 
         <!-- Direct Android APK Download Button on Mobile -->
         <div class="pt-3 border-t-2 border-[#1E293B]">
-          <a href="https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer" class="btn-candy btn-candy-mint btn-full text-xs gap-2 no-underline">
+          <a href="https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.1" target="_blank" rel="noopener noreferrer" class="btn-candy btn-candy-mint btn-full text-xs gap-2 no-underline">
             ${Icons.download} Download Android App (.apk)
           </a>
         </div>
@@ -323,8 +323,8 @@ class App {
               <span class="badge-pill bg-[#F472B6] text-white">🔒 Military E2EE</span>
               <span class="badge-pill bg-[#8B5CF6] text-white">📦 Files up to 64MB</span>
               <span class="badge-pill bg-[#FBBF24] text-[#1E293B]">🌐 100% Offline PWA</span>
-              <a href="https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.0" target="_blank" rel="noopener noreferrer" class="badge-pill bg-[#8B5CF6] text-white hover:scale-105 transition-transform no-underline">
-                📱 Get Android APK (v1.0.0)
+              <a href="https://github.com/Humaam-04-06/optical-transfer/releases/tag/v1.0.1" target="_blank" rel="noopener noreferrer" class="badge-pill bg-[#8B5CF6] text-white hover:scale-105 transition-transform no-underline">
+                📱 Get Android APK (v1.0.1)
               </a>
             </div>
           </div>
