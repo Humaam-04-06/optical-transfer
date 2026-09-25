@@ -52,6 +52,24 @@ export class Alert {
     });
   }
 
+  public static async confirm(title: string, text: string, confirmButtonText: string = 'Yes, Proceed'): Promise<boolean> {
+    const result = await Swal.fire({
+      ...this.baseConfig,
+      icon: 'warning',
+      iconColor: '#F472B6',
+      title,
+      text,
+      showCancelButton: true,
+      confirmButtonText,
+      cancelButtonText: 'Cancel',
+      customClass: {
+        ...this.baseConfig.customClass,
+        confirmButton: 'btn-candy btn-candy-pink mr-2',
+      },
+    });
+    return result.isConfirmed;
+  }
+
   public static async promptPassphrase(): Promise<string | null> {
     const result = await Swal.fire({
       ...this.baseConfig,

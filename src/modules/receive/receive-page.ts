@@ -1,5 +1,6 @@
 /**
  * SpectraBeam - Optical Receiver (Receive Page)
+ * Playful Geometric Theme Implementation (100% Fluid & Responsive)
  */
 
 import confetti from 'canvas-confetti';
@@ -9,7 +10,9 @@ import { SpectraCrypto } from '../../core/crypto.ts';
 import { DecodeWorkerPool } from '../../workers/worker-pool.ts';
 import { ProtocolFlags } from '../../core/types.ts';
 import { Toast } from '../../ui/toast.ts';
+import { Alert } from '../../ui/alert.ts';
 import { Icons } from '../../ui/icons.ts';
+import { SoundFX } from '../../ui/audio.ts';
 
 export class ReceivePage {
   private container: HTMLElement;
@@ -40,133 +43,251 @@ export class ReceivePage {
   }
 
   public render(): void {
+    const isMuted = SoundFX.isMuted();
+
     this.container.innerHTML = `
-      <div class="page-container receive-page">
-        <div class="page-header">
-          <div class="title-group">
-            <h2 class="page-title"><span class="title-icon">${Icons.camera}</span> Optical Receiver</h2>
-            <p class="page-subtitle">Capture fountain-coded light stream with camera viewfinder</p>
+      <div class="space-y-6 sm:space-y-8 animate-pop-in">
+        
+        <!-- Page Title Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-[#1E293B] pb-5">
+          <div class="space-y-1">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-[#34D399] text-[#1E293B] border-2 border-[#1E293B] shadow-pop-sm flex items-center justify-center p-2 flex-shrink-0">
+                ${Icons.camera}
+              </div>
+              <h2 class="font-heading font-black text-2xl sm:text-3xl text-[#1E293B]">Optical Receiver</h2>
+            </div>
+            <p class="font-body text-sm sm:text-base text-[#64748B] pl-0 sm:pl-13">
+              Capture fountain-coded light stream with camera viewfinder and multi-threaded WASM decoder
+            </p>
           </div>
-          <div class="header-badges">
-            <span class="status-badge live-badge" id="cameraStatusBadge">
-              <span class="pulse-dot"></span> CAMERA ACTIVE
+
+          <div class="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+            <button id="btnToggleSound" class="btn-candy btn-candy-secondary btn-candy-sm text-xs gap-1.5" title="Toggle audio chime">
+              <span id="soundIcon">${isMuted ? Icons.volumeMute : Icons.volume}</span>
+              <span id="soundLabel">${isMuted ? 'Muted' : 'Sound On'}</span>
+            </button>
+            <span class="badge-pill bg-[#34D399] text-[#1E293B]">
+              <span class="w-2 h-2 rounded-full bg-[#1E293B] animate-pulse"></span>
+              <span id="sensorStatusText">SENSOR ACTIVE</span>
             </span>
           </div>
         </div>
 
-        <div class="receive-layout">
-          <!-- Left: Camera Viewfinder & Alignment HUD -->
-          <div class="viewfinder-col">
-            <div class="card glass-panel viewfinder-card">
-              <div class="viewfinder-wrapper" id="viewfinderWrapper">
-                <video id="cameraVideo" autoplay playsinline muted></video>
+        <!-- 100% Fluid Responsive Layout: 7 cols Viewfinder, 5 cols Telemetry & File Hub -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+          
+          <!-- ==========================================
+               LEFT COLUMN: Camera Viewfinder & Reticle HUD
+               ========================================== -->
+          <div class="lg:col-span-7 space-y-6 w-full">
+            <div class="card-sticker shadow-pop-xl bg-white p-4 sm:p-6 space-y-4">
+              
+              <!-- Viewfinder Window Top Header -->
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#1E293B] pb-3">
+                <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-[#34D399] border-2 border-[#1E293B]"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#FBBF24] border-2 border-[#1E293B]"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#F472B6] border-2 border-[#1E293B]"></span>
+                  </div>
+                  <span class="font-heading font-black text-xs sm:text-sm text-[#1E293B] ml-2">
+                    WASM Optical Scanner
+                  </span>
+                </div>
 
-                <!-- Reticle Overlay -->
-                <div class="reticle-hud">
-                  <div class="reticle-corner top-left"></div>
-                  <div class="reticle-corner top-right"></div>
-                  <div class="reticle-corner bottom-left"></div>
-                  <div class="reticle-corner bottom-right"></div>
-                  <div class="reticle-crosshair"></div>
-                  <div class="reticle-scanline"></div>
-                  <div class="reticle-text" id="reticleHint">Align camera to sending QR stream</div>
+                <div class="flex items-center gap-2 text-xs font-mono font-bold text-[#64748B]">
+                  <span id="cameraResolution">Waiting...</span>
+                </div>
+              </div>
+
+              <!-- High-Performance Camera Frame (100% Responsive) -->
+              <div class="relative w-full aspect-[4/3] sm:aspect-video bg-[#0F172A] rounded-2xl border-2 border-[#1E293B] shadow-pop overflow-hidden flex items-center justify-center" id="viewfinderWrapper">
+                <video id="cameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+
+                <!-- Reticle HUD Overlay with Playful Geometric Corners & Scanning Laser -->
+                <div class="reticle-hud" id="reticleOverlay">
+                  <div class="reticle-target">
+                    <div class="reticle-bracket reticle-bracket-tl"></div>
+                    <div class="reticle-bracket reticle-bracket-tr"></div>
+                    <div class="reticle-bracket reticle-bracket-bl"></div>
+                    <div class="reticle-bracket reticle-bracket-br"></div>
+                    <div class="reticle-laser"></div>
+                  </div>
+                  <div class="mt-4 px-3 py-1 rounded-full bg-[#1E293B]/80 text-[#34D399] border border-[#34D399] text-[11px] sm:text-xs font-mono font-bold tracking-wide shadow-md" id="reticleHint">
+                    Align camera to sending screen QR stream
+                  </div>
+                </div>
+
+                <!-- Camera Permission / Off Standby Overlay -->
+                <div id="cameraStandbyPlaceholder" class="hidden absolute inset-0 bg-[#FFFDF5] bg-dot-grid flex-col items-center justify-center p-6 text-center z-30">
+                  <div class="w-16 h-16 rounded-2xl bg-[#FBBF24] border-2 border-[#1E293B] shadow-pop flex items-center justify-center text-[#1E293B] mb-3">
+                    ${Icons.camera}
+                  </div>
+                  <h3 class="font-heading font-black text-lg text-[#1E293B] mb-1">Camera Access Required</h3>
+                  <p class="font-body text-xs text-[#64748B] max-w-xs mb-4">
+                    Please allow camera permissions or upload a QR image/video frame to decode
+                  </p>
+                  <button id="btnRetryCamera" class="btn-candy btn-candy-sm">
+                    ${Icons.refresh} Request Camera
+                  </button>
                 </div>
               </div>
 
               <!-- Camera Controls Bar -->
-              <div class="camera-toolbar">
-                <button id="btnSwitchCamera" class="btn btn-sm btn-outline">
-                  ${Icons.refresh} Switch Camera
-                </button>
-                <button id="btnToggleTorch" class="btn btn-sm btn-outline">
-                  ${Icons.torch} Torch
-                </button>
-                <button id="btnResetReceiver" class="btn btn-sm btn-outline">
-                  Reset Stream
-                </button>
-              </div>
+              <div class="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <button id="btnSwitchCamera" class="btn-candy btn-candy-secondary btn-candy-sm text-xs gap-1.5" title="Switch between Front and Back Camera">
+                    ${Icons.refresh} <span>Switch Cam</span>
+                  </button>
+                  <button id="btnToggleTorch" class="btn-candy btn-candy-secondary btn-candy-sm text-xs gap-1.5" title="Toggle Hardware Flashlight">
+                    ${Icons.torch} <span>Torch</span>
+                  </button>
+                  <button id="btnResetReceiver" class="btn-candy btn-candy-secondary btn-candy-sm text-xs gap-1.5" title="Reset Current Decoder State">
+                    ${Icons.close} <span>Reset</span>
+                  </button>
+                </div>
 
-              <!-- Real-time HUD Telemetry -->
-              <div class="telemetry-grid">
-                <div class="telemetry-card">
-                  <span class="hud-label">Goodput Speed</span>
-                  <span class="hud-value highlight" id="hudSpeed">0.0 KB/s</span>
-                </div>
-                <div class="telemetry-card">
-                  <span class="hud-label">Blocks Recovered</span>
-                  <span class="hud-value" id="hudBlocks">0 / 0</span>
-                </div>
-                <div class="telemetry-card">
-                  <span class="hud-label">Fountain Completion</span>
-                  <span class="hud-value" id="hudPercent">0%</span>
-                </div>
-                <div class="telemetry-card">
-                  <span class="hud-label">Frames Captured</span>
-                  <span class="hud-value" id="hudFrames">0</span>
+                <!-- Fallback Image Scanner (Great for testing without a second camera!) -->
+                <div>
+                  <input type="file" id="scanFileInput" accept="image/*" class="hidden" />
+                  <button id="btnScanFile" class="btn-candy btn-candy-mint btn-candy-sm text-xs gap-1.5" title="Scan QR from static image file">
+                    ${Icons.upload} <span>Scan Image</span>
+                  </button>
                 </div>
               </div>
 
-              <!-- Progress Bar -->
-              <div class="hud-progress-container">
-                <div class="hud-progress-bar" id="hudProgressBar" style="width: 0%"></div>
+              <!-- Real-time HUD Telemetry Grid (2 cols mobile, 4 cols desktop) -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
+                <div class="bg-[#F8FAFC] border-2 border-[#1E293B] rounded-xl p-2.5 text-center shadow-pop-sm">
+                  <span class="block text-[10px] font-heading font-bold text-[#64748B] uppercase">Goodput</span>
+                  <span class="font-mono font-bold text-xs sm:text-base text-[#059669]" id="hudSpeed">0.0 KB/s</span>
+                </div>
+
+                <div class="bg-[#F8FAFC] border-2 border-[#1E293B] rounded-xl p-2.5 text-center shadow-pop-sm">
+                  <span class="block text-[10px] font-heading font-bold text-[#64748B] uppercase">Blocks</span>
+                  <span class="font-mono font-bold text-xs sm:text-base text-[#1E293B]" id="hudBlocks">0 / 0</span>
+                </div>
+
+                <div class="bg-[#F8FAFC] border-2 border-[#1E293B] rounded-xl p-2.5 text-center shadow-pop-sm">
+                  <span class="block text-[10px] font-heading font-bold text-[#64748B] uppercase">Fountain Solved</span>
+                  <span class="font-mono font-bold text-xs sm:text-base text-[#8B5CF6]" id="hudPercent">0%</span>
+                </div>
+
+                <div class="bg-[#F8FAFC] border-2 border-[#1E293B] rounded-xl p-2.5 text-center shadow-pop-sm">
+                  <span class="block text-[10px] font-heading font-bold text-[#64748B] uppercase">Frames Decoded</span>
+                  <span class="font-mono font-bold text-xs sm:text-base text-[#1E293B]" id="hudFrames">0</span>
+                </div>
               </div>
+
+              <!-- Candy Striped Fountain Progress Bar -->
+              <div class="space-y-1.5 pt-1">
+                <div class="flex items-center justify-between text-xs font-heading font-bold text-[#1E293B]">
+                  <span>Reconstruction Progress</span>
+                  <span id="hudProgressText">Waiting for transmission...</span>
+                </div>
+                <div class="w-full h-4 bg-[#F1F5F9] border-2 border-[#1E293B] rounded-full overflow-hidden p-0.5 shadow-pop-sm">
+                  <div id="hudProgressBar" class="h-full bg-[#34D399] candy-progress-striped rounded-full transition-all duration-200" style="width: 0%"></div>
+                </div>
+              </div>
+
             </div>
           </div>
 
-          <!-- Right: Reception Status & Completed File Hub -->
-          <div class="receive-sidebar">
-            <div class="card glass-panel transfer-status-card" id="transferStatusCard">
-              <h3 class="panel-heading">${Icons.activity} Transfer Telemetry</h3>
-
-              <div id="receptionStandby" class="reception-standby">
-                <div class="standby-pulse-icon">${Icons.beam}</div>
-                <h4>Listening for Light Waves...</h4>
-                <p>Hold camera steadily in front of the sending screen.</p>
+          <!-- ==========================================
+               RIGHT COLUMN: Telemetry & Completed File Hub
+               ========================================== -->
+          <div class="lg:col-span-5 space-y-6 w-full">
+            <div class="card-sticker shadow-pop-lg bg-white p-5 sm:p-6 space-y-5" id="transferStatusCard">
+              
+              <div class="flex items-center justify-between border-b-2 border-[#1E293B] pb-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-[#FBBF24] border-2 border-[#1E293B] shadow-pop-sm flex items-center justify-center text-[#1E293B]">
+                    ${Icons.activity}
+                  </div>
+                  <h3 class="font-heading font-black text-base text-[#1E293B]">Transfer Telemetry</h3>
+                </div>
+                <span class="badge-pill bg-[#F1F5F9] text-[#1E293B] text-[10px]" id="badgeSessionStatus">
+                  STANDBY
+                </span>
               </div>
 
-              <!-- Decryption Passphrase Prompt (Hidden until encrypted payload finishes) -->
-              <div id="decryptPrompt" class="decrypt-prompt hidden">
-                <div class="decrypt-header">
-                  <span class="icon-accent">${Icons.lock}</span>
-                  <div>
-                    <h4>SpectraVault Encrypted</h4>
-                    <p>Enter the sender's passphrase to decrypt</p>
+              <!-- Standby State -->
+              <div id="receptionStandby" class="py-8 px-4 text-center space-y-3">
+                <div class="w-16 h-16 rounded-full bg-[#FFFDF5] border-2 border-[#1E293B] shadow-pop flex items-center justify-center text-[#8B5CF6] mx-auto animate-bounce">
+                  ${Icons.beam}
+                </div>
+                <h4 class="font-heading font-black text-lg text-[#1E293B]">Listening for Light Stream</h4>
+                <p class="font-body text-xs sm:text-sm text-[#64748B] max-w-xs mx-auto">
+                  Hold camera steadily in front of the transmitter screen. The Luby Transform decoder will automatically lock on session packets.
+                </p>
+              </div>
+
+              <!-- Decryption Passphrase Prompt (Displays when an encrypted stream is captured) -->
+              <div id="decryptPrompt" class="hidden space-y-4 pt-2">
+                <div class="p-4 rounded-2xl bg-[#FEF3C7] border-2 border-[#1E293B] shadow-pop-sm space-y-2">
+                  <div class="flex items-center gap-2 text-[#B45309]">
+                    ${Icons.lock}
+                    <h4 class="font-heading font-black text-sm text-[#1E293B]">SpectraVault™ Encrypted Stream</h4>
                   </div>
+                  <p class="font-body text-xs text-[#78350F]">
+                    All fountain blocks successfully reconstructed! Please enter the sender's passphrase to decrypt the payload.
+                  </p>
                 </div>
-                <div class="form-group">
-                  <input type="password" id="rxPassphrase" class="cyber-input" placeholder="Passphrase" />
+
+                <div class="space-y-2">
+                  <label for="rxPassphrase" class="block font-heading font-bold text-xs text-[#1E293B] uppercase">
+                    Passphrase
+                  </label>
+                  <input type="password" id="rxPassphrase" class="input-geometric text-sm" placeholder="Enter passphrase to decrypt" />
                 </div>
-                <button id="btnDecryptNow" class="btn btn-primary btn-full">
+
+                <button id="btnDecryptNow" class="btn-candy btn-candy-secondary btn-full">
                   ${Icons.shield} Unlock & Decrypt Payload
                 </button>
               </div>
 
-              <!-- Completed File Result View (Hidden until complete) -->
-              <div id="resultViewer" class="result-viewer hidden">
-                <div class="result-header">
-                  <div class="badge-success-row">
-                    <span class="badge-success">${Icons.check} RECEIVED & VERIFIED</span>
+              <!-- Completed File Result View (Displays when fully decrypted & verified) -->
+              <div id="resultViewer" class="hidden space-y-4 pt-2">
+                <div class="p-4 rounded-2xl bg-[#ECFDF5] border-2 border-[#1E293B] shadow-pop-sm space-y-2">
+                  <div class="flex items-center gap-2">
+                    <span class="w-5 h-5 rounded-full bg-[#34D399] border border-[#1E293B] flex items-center justify-center text-[#1E293B] p-0.5">
+                      ${Icons.check}
+                    </span>
+                    <span class="font-heading font-extrabold text-xs text-[#065F46] uppercase tracking-wider">
+                      RECONSTRUCTION VERIFIED
+                    </span>
                   </div>
-                  <h3 id="resFileName" class="result-filename">document.pdf</h3>
-                  <div class="result-meta">
-                    <span id="resFileSize">0 KB</span> • <span id="resFileSha" class="sha-tag">SHA-256 OK</span>
+                  <h3 id="resFileName" class="font-heading font-black text-lg text-[#1E293B] break-all">
+                    document.pdf
+                  </h3>
+                  <div class="flex flex-wrap items-center gap-2 text-xs font-mono text-[#64748B]">
+                    <span id="resFileSize" class="font-bold text-[#1E293B]">0 KB</span>
+                    <span>•</span>
+                    <span id="resFileSha" class="bg-white px-2 py-0.5 rounded border border-[#CBD5E1] text-[11px] truncate max-w-[180px]">
+                      SHA-256 OK
+                    </span>
                   </div>
                 </div>
 
-                <!-- In-Browser Media Preview -->
-                <div id="mediaPreviewContainer" class="media-preview-container"></div>
+                <!-- In-Browser Media Preview Box -->
+                <div id="mediaPreviewContainer" class="rounded-2xl border-2 border-[#1E293B] overflow-hidden bg-[#F8FAFC] max-h-56 flex items-center justify-center p-2 empty:hidden"></div>
 
-                <div class="result-actions">
-                  <a id="btnDownload" class="btn btn-primary btn-full" download>
+                <!-- Action Buttons: Download & Burn-After-Reading -->
+                <div class="space-y-2.5 pt-1">
+                  <a id="btnDownload" class="btn-candy btn-full" download>
                     ${Icons.download} Save File to Device
                   </a>
-                  <button id="btnBurn" class="btn btn-danger btn-full">
+
+                  <button id="btnBurn" class="btn-candy btn-candy-pink btn-full">
                     ${Icons.flame} Burn-After-Reading (Wipe RAM)
                   </button>
                 </div>
               </div>
+
             </div>
           </div>
+
         </div>
       </div>
     `;
@@ -179,10 +300,15 @@ export class ReceivePage {
     const btnSwitchCamera = this.container.querySelector('#btnSwitchCamera') as HTMLButtonElement;
     const btnToggleTorch = this.container.querySelector('#btnToggleTorch') as HTMLButtonElement;
     const btnResetReceiver = this.container.querySelector('#btnResetReceiver') as HTMLButtonElement;
+    const btnRetryCamera = this.container.querySelector('#btnRetryCamera') as HTMLButtonElement;
+    const btnScanFile = this.container.querySelector('#btnScanFile') as HTMLButtonElement;
+    const scanFileInput = this.container.querySelector('#scanFileInput') as HTMLInputElement;
+    const btnToggleSound = this.container.querySelector('#btnToggleSound') as HTMLButtonElement;
     const btnDecryptNow = this.container.querySelector('#btnDecryptNow') as HTMLButtonElement;
     const btnBurn = this.container.querySelector('#btnBurn') as HTMLButtonElement;
     this.videoEl = this.container.querySelector('#cameraVideo') as HTMLVideoElement;
 
+    // Camera switches
     btnSwitchCamera.addEventListener('click', () => {
       this.facingMode = this.facingMode === 'environment' ? 'user' : 'environment';
       this.initCamera();
@@ -194,23 +320,61 @@ export class ReceivePage {
 
     btnResetReceiver.addEventListener('click', () => {
       this.resetTransfer();
-      Toast.show('Stream tracker reset', 'info');
+      Toast.show('Optical receiver stream reset', 'info');
     });
 
+    if (btnRetryCamera) {
+      btnRetryCamera.addEventListener('click', () => {
+        this.initCamera();
+      });
+    }
+
+    // Static image scan fallback
+    btnScanFile.addEventListener('click', () => {
+      scanFileInput.click();
+    });
+
+    scanFileInput.addEventListener('change', () => {
+      if (scanFileInput.files?.length) {
+        this.processImageFile(scanFileInput.files[0]);
+      }
+    });
+
+    // Sound toggle
+    btnToggleSound.addEventListener('click', () => {
+      const isMuted = SoundFX.toggleMute();
+      const soundIcon = this.container.querySelector('#soundIcon');
+      const soundLabel = this.container.querySelector('#soundLabel');
+      if (soundIcon) soundIcon.innerHTML = isMuted ? Icons.volumeMute : Icons.volume;
+      if (soundLabel) soundLabel.textContent = isMuted ? 'Muted' : 'Sound On';
+      Toast.show(isMuted ? 'Audio feedback muted' : 'Audio chime enabled', 'info');
+    });
+
+    // Decryption button
     btnDecryptNow.addEventListener('click', () => {
       this.attemptDecryption();
     });
 
-    btnBurn.addEventListener('click', () => {
-      this.burnPayload();
+    // Burn button with SweetAlert2 confirmation
+    btnBurn.addEventListener('click', async () => {
+      const confirmed = await Alert.confirm(
+        'Burn Payload from RAM?',
+        'This will zero out all memory buffers and destroy the decrypted file in browser memory. This cannot be undone.'
+      );
+      if (confirmed) {
+        this.burnPayload();
+      }
     });
   }
 
   private async initCamera(): Promise<void> {
     if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach(t => t.stop());
+      this.mediaStream.getTracks().forEach((t) => t.stop());
       this.mediaStream = null;
     }
+
+    const placeholder = this.container.querySelector('#cameraStandbyPlaceholder') as HTMLElement;
+    const resEl = this.container.querySelector('#cameraResolution');
 
     try {
       const constraints: MediaStreamConstraints = {
@@ -226,16 +390,23 @@ export class ReceivePage {
       if (this.videoEl) {
         this.videoEl.srcObject = this.mediaStream;
         await this.videoEl.play();
+        if (placeholder) placeholder.classList.add('hidden');
+        if (resEl) resEl.textContent = `${this.videoEl.videoWidth || 1280}x${this.videoEl.videoHeight || 720}`;
       }
 
       this.startScanning();
     } catch (err: any) {
-      Toast.error(`Camera access error: ${err.message}`);
+      if (placeholder) placeholder.classList.remove('hidden');
+      if (resEl) resEl.textContent = 'Camera Inactive';
+      Toast.show(`Camera access error: ${err.message}`, 'error');
     }
   }
 
   private async toggleTorch(): Promise<void> {
-    if (!this.mediaStream) return;
+    if (!this.mediaStream) {
+      Toast.warning('Camera stream not active');
+      return;
+    }
     const track = this.mediaStream.getVideoTracks()[0];
     if (!track) return;
 
@@ -246,9 +417,9 @@ export class ReceivePage {
         await (track as any).applyConstraints({
           advanced: [{ torch: this.torchEnabled }],
         });
-        Toast.show(this.torchEnabled ? 'Torch ON' : 'Torch OFF', 'info');
+        Toast.show(this.torchEnabled ? 'Torch Activated' : 'Torch Deactivated', 'info');
       } else {
-        Toast.warning('Hardware torch not supported on this device');
+        Toast.warning('Hardware torch not supported on this camera');
       }
     } catch (err: any) {
       Toast.error(`Torch toggle failed: ${err.message}`);
@@ -288,7 +459,7 @@ export class ReceivePage {
           this.offscreenCtx.drawImage(this.videoEl, 0, 0, targetW, targetH);
           const imgData = this.offscreenCtx.getImageData(0, 0, targetW, targetH);
 
-          // Submit to worker pool
+          // Submit to WASM worker pool
           this.workerPool.decodeFrame(imgData, (symbols) => {
             for (const sym of symbols) {
               this.handleSymbol(sym);
@@ -301,6 +472,38 @@ export class ReceivePage {
     };
 
     requestAnimationFrame(scanFrame);
+  }
+
+  /**
+   * Allows decoding an uploaded QR frame image file directly
+   */
+  private async processImageFile(file: File): Promise<void> {
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, img.width, img.height);
+        if (!this.workerPool) {
+          this.workerPool = new DecodeWorkerPool(2);
+        }
+        this.workerPool.decodeFrame(imgData, (symbols) => {
+          if (symbols.length > 0) {
+            Toast.success(`Decoded ${symbols.length} symbol(s) from image`);
+            for (const sym of symbols) {
+              this.handleSymbol(sym);
+            }
+          } else {
+            Toast.warning('No valid QR fountain symbol found in image');
+          }
+        });
+      }
+      URL.revokeObjectURL(img.src);
+    };
   }
 
   private handleSymbol(rawBytes: Uint8Array): void {
@@ -319,8 +522,13 @@ export class ReceivePage {
       this.startTime = performance.now();
 
       const reticleHint = this.container.querySelector('#reticleHint');
+      const badgeSessionStatus = this.container.querySelector('#badgeSessionStatus');
       if (reticleHint) {
-        reticleHint.textContent = `Locked on Session 0x${header.sessionId.toString(16).toUpperCase()} (${header.k} blocks)`;
+        reticleHint.textContent = `Locked: 0x${header.sessionId.toString(16).toUpperCase()} (${header.k} blocks)`;
+      }
+      if (badgeSessionStatus) {
+        badgeSessionStatus.textContent = `RECEIVING (${header.k} BLOCKS)`;
+        badgeSessionStatus.className = 'badge-pill bg-[#34D399] text-[#1E293B] text-[10px] animate-pulse';
       }
     }
 
@@ -332,21 +540,27 @@ export class ReceivePage {
     const { isComplete, newlySolved } = this.decoder.addPacket(header.sequenceNumber, chunk);
     const progress = this.decoder.getProgress();
 
+    if (newlySolved > 0) {
+      SoundFX.playPacketTick();
+    }
+
     // Update Telemetry
     const elapsedSec = (performance.now() - this.startTime) / 1000;
-    const speedKBps = elapsedSec > 0 ? (this.bytesDecoded / 1024) / elapsedSec : 0;
+    const speedKBps = elapsedSec > 0 ? this.bytesDecoded / 1024 / elapsedSec : 0;
 
     const hudSpeed = this.container.querySelector('#hudSpeed');
     const hudBlocks = this.container.querySelector('#hudBlocks');
     const hudPercent = this.container.querySelector('#hudPercent');
     const hudFrames = this.container.querySelector('#hudFrames');
     const hudProgressBar = this.container.querySelector('#hudProgressBar') as HTMLElement;
+    const hudProgressText = this.container.querySelector('#hudProgressText');
 
     if (hudSpeed) hudSpeed.textContent = `${speedKBps.toFixed(1)} KB/s`;
     if (hudBlocks) hudBlocks.textContent = `${progress.solved} / ${progress.K}`;
     if (hudPercent) hudPercent.textContent = `${progress.percentage}%`;
     if (hudFrames) hudFrames.textContent = `${this.framesCount}`;
     if (hudProgressBar) hudProgressBar.style.width = `${progress.percentage}%`;
+    if (hudProgressText) hudProgressText.textContent = `${progress.solved} of ${progress.K} blocks reconstructed (${progress.percentage}%)`;
 
     if (isComplete) {
       this.onStreamCompleted();
@@ -361,30 +575,56 @@ export class ReceivePage {
 
       // Confetti burst!
       confetti({
-        particleCount: 80,
-        spread: 70,
+        particleCount: 100,
+        spread: 80,
         origin: { y: 0.6 },
       });
+
+      // Play joyful fanfare chord
+      SoundFX.playSuccessFanfare();
+
+      const badgeSessionStatus = this.container.querySelector('#badgeSessionStatus');
+      if (badgeSessionStatus) {
+        badgeSessionStatus.textContent = 'STREAM COMPLETE';
+        badgeSessionStatus.className = 'badge-pill bg-[#8B5CF6] text-white text-[10px]';
+      }
 
       if (this.isEncryptedSession) {
         // Show Decrypt Passphrase Prompt
         (this.container.querySelector('#receptionStandby') as HTMLElement).classList.add('hidden');
         (this.container.querySelector('#decryptPrompt') as HTMLElement).classList.remove('hidden');
-        // Store raw ciphertext until user enters password
+
         this.completedFile = {
-          metadata: { name: 'Encrypted Stream', type: 'application/octet-stream', sha256: '', originalSize: reconstructedBytes.length, compressed: false },
+          metadata: {
+            name: 'Encrypted Stream',
+            type: 'application/octet-stream',
+            sha256: '',
+            originalSize: reconstructedBytes.length,
+            compressed: false,
+          },
           bytes: reconstructedBytes,
           rawCiphertext: reconstructedBytes,
         };
-        Toast.show('Fountain stream fully captured! Enter passphrase to decrypt.', 'info');
+
+        Toast.show('Fountain stream captured! Enter passphrase to decrypt.', 'info');
+
+        // Automatically prompt with SweetAlert2 for convenience
+        const pass = await Alert.promptPassphrase();
+        if (pass) {
+          const passInput = this.container.querySelector('#rxPassphrase') as HTMLInputElement;
+          if (passInput) passInput.value = pass;
+          await this.attemptDecryption();
+        }
       } else {
         // Unpack container directly
         const { metadata, fileBytes } = await unpackContainer(reconstructedBytes);
         this.completedFile = { metadata, bytes: fileBytes };
         this.displayCompletedFile();
+        Toast.success('Fountain stream verified and reconstructed!');
       }
     } catch (err: any) {
-      Toast.error(`Reconstruction error: ${err.message}`);
+      SoundFX.playError();
+      Alert.warning('Reconstruction Error', `Failed to unpack stream: ${err.message}`);
     }
   }
 
@@ -398,16 +638,19 @@ export class ReceivePage {
     if (!this.completedFile?.rawCiphertext) return;
 
     try {
-      // Decrypt container
+      // Decrypt container with AES-256-GCM + PBKDF2
       const decryptedContainerBytes = await SpectraCrypto.decrypt(this.completedFile.rawCiphertext, rxPassphrase);
       const { metadata, fileBytes } = await unpackContainer(decryptedContainerBytes);
 
       this.completedFile = { metadata, bytes: fileBytes };
       (this.container.querySelector('#decryptPrompt') as HTMLElement).classList.add('hidden');
       this.displayCompletedFile();
-      Toast.success('Decryption and SHA-256 verification successful!');
+
+      SoundFX.playSuccessFanfare();
+      Toast.success('Decryption and SHA-256 integrity verification successful!');
     } catch (err: any) {
-      Toast.error('Decryption failed! Incorrect passphrase or corrupted payload.');
+      SoundFX.playError();
+      Alert.warning('Decryption Failed', 'Incorrect passphrase or corrupted optical payload.');
     }
   }
 
@@ -415,13 +658,14 @@ export class ReceivePage {
     if (!this.completedFile) return;
 
     (this.container.querySelector('#receptionStandby') as HTMLElement).classList.add('hidden');
+    (this.container.querySelector('#decryptPrompt') as HTMLElement).classList.add('hidden');
     const resultViewer = this.container.querySelector('#resultViewer') as HTMLElement;
     resultViewer.classList.remove('hidden');
 
     const meta = this.completedFile.metadata;
     (this.container.querySelector('#resFileName') as HTMLElement).textContent = meta.name;
     (this.container.querySelector('#resFileSize') as HTMLElement).textContent = `${(this.completedFile.bytes.length / 1024).toFixed(1)} KB`;
-    (this.container.querySelector('#resFileSha') as HTMLElement).textContent = `SHA: ${meta.sha256.substring(0, 8)}... (VALID)`;
+    (this.container.querySelector('#resFileSha') as HTMLElement).textContent = `SHA: ${meta.sha256.substring(0, 10)}...`;
 
     // Create Blob URL for download & preview
     const blob = new Blob([this.completedFile.bytes as any], { type: meta.type });
@@ -436,14 +680,14 @@ export class ReceivePage {
     previewContainer.innerHTML = '';
 
     if (meta.type.startsWith('image/')) {
-      previewContainer.innerHTML = `<img src="${this.activeBlobUrl}" class="preview-img" alt="Received image" />`;
+      previewContainer.innerHTML = `<img src="${this.activeBlobUrl}" class="max-h-48 rounded-xl object-contain border border-[#CBD5E1]" alt="Received image" />`;
     } else if (meta.type.startsWith('video/')) {
-      previewContainer.innerHTML = `<video src="${this.activeBlobUrl}" controls class="preview-video"></video>`;
+      previewContainer.innerHTML = `<video src="${this.activeBlobUrl}" controls class="max-h-48 rounded-xl object-contain w-full"></video>`;
     } else if (meta.type.startsWith('audio/')) {
-      previewContainer.innerHTML = `<audio src="${this.activeBlobUrl}" controls class="preview-audio"></audio>`;
-    } else if (meta.type.startsWith('text/') || meta.name.endsWith('.txt')) {
+      previewContainer.innerHTML = `<audio src="${this.activeBlobUrl}" controls class="w-full my-2"></audio>`;
+    } else if (meta.type.startsWith('text/') || meta.name.endsWith('.txt') || meta.name.endsWith('.json') || meta.name.endsWith('.md')) {
       const text = new TextDecoder().decode(this.completedFile.bytes.subarray(0, 2048));
-      previewContainer.innerHTML = `<pre class="preview-text">${text}</pre>`;
+      previewContainer.innerHTML = `<pre class="p-3 bg-white border border-[#CBD5E1] rounded-xl text-xs font-mono text-[#1E293B] overflow-x-auto max-h-40 w-full select-all">${text}</pre>`;
     }
   }
 
@@ -455,11 +699,14 @@ export class ReceivePage {
 
     if (this.completedFile) {
       this.completedFile.bytes.fill(0); // Zero out buffer in RAM
+      if (this.completedFile.rawCiphertext) {
+        this.completedFile.rawCiphertext.fill(0);
+      }
       this.completedFile = null;
     }
 
     this.resetTransfer();
-    Toast.show('RAM purged. All payload traces burned.', 'warning');
+    Toast.show('RAM zeroed out. All payload traces destroyed.', 'info');
   }
 
   private resetTransfer(): void {
@@ -469,11 +716,26 @@ export class ReceivePage {
     this.framesCount = 0;
     this.bytesDecoded = 0;
 
-    (this.container.querySelector('#hudSpeed') as HTMLElement).textContent = '0.0 KB/s';
-    (this.container.querySelector('#hudBlocks') as HTMLElement).textContent = '0 / 0';
-    (this.container.querySelector('#hudPercent') as HTMLElement).textContent = '0%';
-    (this.container.querySelector('#hudFrames') as HTMLElement).textContent = '0';
-    (this.container.querySelector('#hudProgressBar') as HTMLElement).style.width = '0%';
+    const hudSpeed = this.container.querySelector('#hudSpeed');
+    const hudBlocks = this.container.querySelector('#hudBlocks');
+    const hudPercent = this.container.querySelector('#hudPercent');
+    const hudFrames = this.container.querySelector('#hudFrames');
+    const hudProgressBar = this.container.querySelector('#hudProgressBar') as HTMLElement;
+    const hudProgressText = this.container.querySelector('#hudProgressText');
+    const reticleHint = this.container.querySelector('#reticleHint');
+    const badgeSessionStatus = this.container.querySelector('#badgeSessionStatus');
+
+    if (hudSpeed) hudSpeed.textContent = '0.0 KB/s';
+    if (hudBlocks) hudBlocks.textContent = '0 / 0';
+    if (hudPercent) hudPercent.textContent = '0%';
+    if (hudFrames) hudFrames.textContent = '0';
+    if (hudProgressBar) hudProgressBar.style.width = '0%';
+    if (hudProgressText) hudProgressText.textContent = 'Waiting for transmission...';
+    if (reticleHint) reticleHint.textContent = 'Align camera to sending screen QR stream';
+    if (badgeSessionStatus) {
+      badgeSessionStatus.textContent = 'STANDBY';
+      badgeSessionStatus.className = 'badge-pill bg-[#F1F5F9] text-[#1E293B] text-[10px]';
+    }
 
     (this.container.querySelector('#resultViewer') as HTMLElement).classList.add('hidden');
     (this.container.querySelector('#decryptPrompt') as HTMLElement).classList.add('hidden');
@@ -483,7 +745,7 @@ export class ReceivePage {
   public destroy(): void {
     this.isScanning = false;
     if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach(t => t.stop());
+      this.mediaStream.getTracks().forEach((t) => t.stop());
       this.mediaStream = null;
     }
     if (this.workerPool) {

@@ -451,3 +451,101 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0.7rem 1.25rem;
   }
 }
+
+/* ==========================================================================
+   Optical Receiver Viewfinder & Reticle HUD
+   ========================================================================== */
+
+.reticle-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.reticle-target {
+  position: relative;
+  width: 68%;
+  max-width: 280px;
+  aspect-ratio: 1 / 1;
+  border-radius: 20px;
+  box-shadow: 0 0 0 9999px rgba(30, 41, 59, 0.45);
+}
+
+.reticle-bracket {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-color: #34D399;
+}
+
+.reticle-bracket-tl {
+  top: -2px;
+  left: -2px;
+  border-top: 4px solid #34D399;
+  border-left: 4px solid #34D399;
+  border-top-left-radius: 16px;
+}
+
+.reticle-bracket-tr {
+  top: -2px;
+  right: -2px;
+  border-top: 4px solid #34D399;
+  border-right: 4px solid #34D399;
+  border-top-right-radius: 16px;
+}
+
+.reticle-bracket-bl {
+  bottom: -2px;
+  left: -2px;
+  border-bottom: 4px solid #34D399;
+  border-left: 4px solid #34D399;
+  border-bottom-left-radius: 16px;
+}
+
+.reticle-bracket-br {
+  bottom: -2px;
+  right: -2px;
+  border-bottom: 4px solid #34D399;
+  border-right: 4px solid #34D399;
+  border-bottom-right-radius: 16px;
+}
+
+.reticle-laser {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 3px;
+  background: #34D399;
+  border-radius: 9999px;
+  box-shadow: 0 0 10px #34D399;
+  animation: reticleScan 2s ease-in-out infinite alternate;
+}
+
+@keyframes reticleScan {
+  0% { top: 8%; opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { top: 92%; opacity: 0.6; }
+}
+
+.candy-progress-striped {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.25),
+    rgba(255, 255, 255, 0.25) 12px,
+    transparent 12px,
+    transparent 24px
+  );
+  background-size: 34px 34px;
+  animation: candyStripeMove 1.2s linear infinite;
+}
+
+@keyframes candyStripeMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 34px 0; }
+}
+
