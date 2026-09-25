@@ -1,0 +1,16 @@
+{
+  "name": "SpectraBeam Optical Transfer",
+  "short_name": "SpectraBeam",
+  "description": "Air-gapped, zero-network optical file transfer and cold-vault signing via light",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080c14",
+  "theme_color": "#00f2fe",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
