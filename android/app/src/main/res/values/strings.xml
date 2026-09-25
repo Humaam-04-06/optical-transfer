@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SpectraBeam</string>
+    <string name="title_activity_main">SpectraBeam</string>
+    <string name="package_name">com.humaam.spectrabeam</string>
+    <string name="custom_url_scheme">com.humaam.spectrabeam</string>
+</resources>

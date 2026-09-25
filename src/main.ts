@@ -134,7 +134,7 @@ class App {
       </div>
 
       <!-- Main Page Viewport Container -->
-      <main class="main-content max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-10 w-full overflow-hidden" id="mainContent"></main>
+      <main class="main-content max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-10 w-full" id="mainContent"></main>
     `;
 
     this.contentEl = document.getElementById('mainContent');

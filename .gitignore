@@ -27,3 +27,13 @@ pnpm-debug.log*
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Android build outputs & local properties
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.apk
+release/
+install.cmd
+

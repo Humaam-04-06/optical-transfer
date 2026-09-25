@@ -9,6 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
     "canvas-confetti": "^1.9.4",
     "lucide": "^1.16.0",
     "qrcode": "^1.5.4",
