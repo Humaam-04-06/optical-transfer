@@ -94,13 +94,13 @@ class App {
           </div>
 
           <!-- Dark Mode Toggle Button -->
-          <button id="btnThemeToggle" class="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 bg-white border-2 border-[#1E293B] rounded-xl shadow-pop-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex-shrink-0 cursor-pointer text-[#1E293B]" title="Toggle Dark / Light Theme" aria-label="Toggle Dark / Light Theme">
-            <span id="themeToggleIcon">${ThemeManager.isDark() ? Icons.sun : Icons.moon}</span>
+          <button id="btnThemeToggle" class="btn-icon-square" title="Toggle Dark / Light Theme" aria-label="Toggle Dark / Light Theme">
+            <span id="themeToggleIcon" class="flex items-center justify-center">${ThemeManager.isDark() ? Icons.sun : Icons.moon}</span>
           </button>
 
           <!-- Mobile Menu Button -->
-          <button id="mobileMenuBtn" class="md:hidden flex items-center justify-center w-10 h-10 bg-white border-2 border-[#1E293B] rounded-xl shadow-pop-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all flex-shrink-0" aria-label="Toggle Navigation Menu">
-            <span id="mobileMenuIcon">${Icons.menu}</span>
+          <button id="mobileMenuBtn" class="md:hidden btn-icon-square" aria-label="Toggle Navigation Menu">
+            <span id="mobileMenuIcon" class="flex items-center justify-center">${Icons.menu}</span>
           </button>
         </div>
       </header>
@@ -177,6 +177,7 @@ class App {
 
     btnThemeToggle?.addEventListener('click', handleThemeToggle);
     mobileThemeToggle?.addEventListener('click', handleThemeToggle);
+    updateThemeUI(ThemeManager.isDark());
 
     // Close drawer on link click
     const mobileLinks = this.appEl.querySelectorAll('.mobile-nav-link');
