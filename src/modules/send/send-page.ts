@@ -201,7 +201,8 @@ export class SendPage {
                   <select id="selectBlockSize" class="input-geometric font-heading font-bold text-sm bg-white cursor-pointer">
                     <option value="256">256 B (Phones)</option>
                     <option value="384" selected>384 B (Balanced)</option>
-                    <option value="512">512 B (Monitors / 4K)</option>
+                    <option value="512">512 B (Monitors / Fast)</option>
+                    <option value="768">768 B (Ultra Density)</option>
                   </select>
                 </div>
               </div>
@@ -274,9 +275,17 @@ export class SendPage {
                   <div class="w-full max-w-[320px] aspect-square mx-auto bg-white rounded-2xl border-2 border-[#1E293B] shadow-pop-sm p-2 flex items-center justify-center">
                     <canvas id="turboCanvas" width="400" height="400" class="w-full h-full object-contain"></canvas>
                   </div>
-                  <div class="mt-3 flex items-center justify-center gap-2">
+                  <div class="mt-2.5 flex items-center justify-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-ping"></span>
                     <span class="font-heading font-black text-xs text-[#1E293B]" id="turboOverlayStatus">AWAITING CAMERA SCAN (10–50 MB/s)</span>
+                  </div>
+                  <div class="mt-1.5 flex items-center justify-center gap-1.5 text-[11px] font-mono">
+                    <span class="text-[#065F46] bg-[#ECFDF5] px-2.5 py-0.5 rounded-full border border-[#A7F3D0] font-bold" id="turboEndpointBadge">
+                      Endpoint: Loading...
+                    </span>
+                    <button type="button" id="btnEditTurboIp" class="text-[#8B5CF6] hover:underline font-bold text-[10px]" title="Change IP endpoint if using Hotspot">
+                      Edit IP
+                    </button>
                   </div>
                   <p class="font-body text-[11px] text-[#64748B] mt-1 max-w-xs">
                     Point your mobile camera at this QR code for 1 second to pair and stream at maximum speed!
@@ -390,18 +399,30 @@ export class SendPage {
       this.isChromaRGB = toggleChroma.checked;
       Toast.show(
         this.isChromaRGB
-          ? 'ChromaBeam™ RGB Tri-Stream Mode Activated (3x throughput)'
+          ? '🌈 ChromaBeam™ RGB Tri-Stream Mode Activated (3x throughput)'
           : 'Standard Monochrome Mode Active',
         'info'
       );
+      if (this.rawLoadedBytes) {
+        this.preparePayload(this.rawLoadedBytes, this.rawLoadedName, this.rawLoadedType);
+      }
     });
 
     selectFps.addEventListener('change', () => {
       this.targetFps = parseInt(selectFps.value, 10);
+      if (this.rawLoadedBytes) {
+        const speedEl = this.container.querySelector('#valTargetSpeed');
+        if (speedEl) {
+          speedEl.textContent = `${Math.round((this.blockSize * this.targetFps) / 1024 * (this.isChromaRGB ? 3 : 1))} KB/s`;
+        }
+      }
     });
 
     selectBlockSize.addEventListener('change', () => {
       this.blockSize = parseInt(selectBlockSize.value, 10);
+      if (this.rawLoadedBytes) {
+        this.preparePayload(this.rawLoadedBytes, this.rawLoadedName, this.rawLoadedType);
+      }
     });
 
     const toggleTurbo = this.container.querySelector('#toggleTurbo') as HTMLInputElement;
@@ -651,6 +672,30 @@ export class SendPage {
 
       if (this.turboCanvas) {
         await this.turboSender.renderPairingQr(this.turboCanvas);
+      }
+
+      const turboEndpointBadge = this.container.querySelector('#turboEndpointBadge');
+      if (turboEndpointBadge && session.token.endpoints?.[0]) {
+        turboEndpointBadge.textContent = `Endpoint: ${session.token.endpoints[0]}`;
+      }
+
+      // Bind Edit IP button
+      const btnEditTurboIp = this.container.querySelector('#btnEditTurboIp') as HTMLElement | null;
+      if (btnEditTurboIp) {
+        btnEditTurboIp.onclick = async () => {
+          const currentEndpoint = this.turboSender?.getSession()?.token.endpoints?.[0] || 'http://192.168.100.5:5173';
+          const customUrl = prompt('Enter Transmitter Wi-Fi / Hotspot URL:', currentEndpoint);
+          if (customUrl && customUrl.trim() && this.rawLoadedBytes && this.turboSender) {
+            const activeSession = this.turboSender.getSession();
+            if (activeSession && this.turboCanvas) {
+              activeSession.token.endpoints = [customUrl.trim()];
+              activeSession.qrPayload = 'SPTB:' + JSON.stringify(activeSession.token);
+              await this.turboSender.renderPairingQr(this.turboCanvas);
+              if (turboEndpointBadge) turboEndpointBadge.textContent = `Endpoint: ${customUrl.trim()}`;
+              Toast.success(`Pairing endpoint updated to ${customUrl.trim()}`);
+            }
+          }
+        };
       }
 
       // Update UI Telemetry

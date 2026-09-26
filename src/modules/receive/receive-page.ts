@@ -593,14 +593,17 @@ export class ReceivePage {
       this.bytesDecoded = 0;
       this.startTime = performance.now();
 
+      const isChroma = (header.flags & ProtocolFlags.CHROMA_RGB) !== 0;
       const reticleHint = this.container.querySelector('#reticleHint');
       const badgeSessionStatus = this.container.querySelector('#badgeSessionStatus');
       if (reticleHint) {
-        reticleHint.textContent = `Locked: 0x${header.sessionId.toString(16).toUpperCase()} (${header.k} blocks)`;
+        reticleHint.textContent = `Locked: 0x${header.sessionId.toString(16).toUpperCase()} (${header.k} blocks) ${isChroma ? '🌈 [ChromaBeam 3X]' : ''}`;
       }
       if (badgeSessionStatus) {
-        badgeSessionStatus.textContent = `RECEIVING (${header.k} BLOCKS)`;
-        badgeSessionStatus.className = 'badge-pill bg-[#34D399] text-[#1E293B] text-[10px] animate-pulse';
+        badgeSessionStatus.textContent = isChroma ? '🌈 CHROMABEAM 3X' : `RECEIVING (${header.k} BLOCKS)`;
+        badgeSessionStatus.className = isChroma
+          ? 'badge-pill bg-[#F472B6] text-white text-[10px] animate-pulse font-black'
+          : 'badge-pill bg-[#34D399] text-[#1E293B] text-[10px] animate-pulse';
       }
     }
 

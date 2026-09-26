@@ -34,14 +34,24 @@ function turboStreamPlugin(): Plugin {
         // 1. IP Discovery Endpoint
         if (url === '/api/turbo/ips' && req.method === 'GET') {
           const interfaces = os.networkInterfaces();
-          const ips: string[] = [];
+          const priorityIps: string[] = [];
+          const secondaryIps: string[] = [];
+
           for (const name of Object.keys(interfaces)) {
+            const isVirtual = /vethernet|virtual|vbox|vmware|wsl|docker|loopback/i.test(name);
             for (const iface of interfaces[name] || []) {
               if (iface.family === 'IPv4' && !iface.internal) {
-                ips.push(iface.address);
+                if (!isVirtual && (iface.address.startsWith('192.168.') || iface.address.startsWith('10.'))) {
+                  priorityIps.push(iface.address);
+                } else if (!isVirtual && !iface.address.startsWith('169.254.')) {
+                  priorityIps.push(iface.address);
+                } else if (!iface.address.startsWith('169.254.')) {
+                  secondaryIps.push(iface.address);
+                }
               }
             }
           }
+          const ips = Array.from(new Set([...priorityIps, ...secondaryIps]));
           res.setHeader('Content-Type', 'application/json');
           res.end(JSON.stringify({ ips, port: 5173 }));
           return;
