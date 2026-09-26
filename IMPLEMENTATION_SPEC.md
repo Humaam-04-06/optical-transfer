@@ -366,3 +366,75 @@ To maintain absolute control over quality, design, and functionality, the develo
 5. **Practical Air-Gapped Utility**: Integrating offline transaction signing (PSBT) transforms this from an experimental proof-of-concept into a viable alternative to dedicated hardware wallets.
 6. **100% Zero-Trust & Serverless**: Runs completely client-side, works completely offline, and leaves zero telemetry traces.
 
+---
+
+## 10. High-Speed Air-Gapped Hybrid Turbo Mode (10–50 MB/s) - Phased Implementation Plan
+
+### 🎯 Motivation & Throughput Optimization
+- **The Optical Camera Bottleneck**: Standard screen-to-camera optical transfer operates at $384 \text{ bytes} \times 30 \text{ FPS} \approx 11.5 \text{ KB/s}$. Due to mobile camera rolling shutter, motion blur, and sensor capture limits, reaching multi-megabyte/sec transfer purely through camera lenses is physically restricted on consumer hardware.
+- **The Solution (Air-Gapped Hybrid Architecture)**:
+  1. **Optical Handshake**: A 1-second optical QR scan exchanges ephemeral cryptographic session keys (**AES-256-GCM**) and local offline peer connection endpoints with physical line-of-sight verification (zero internet, zero cloud).
+  2. **High-Speed Offline Local Stream**: Direct encrypted streaming over local offline Wi-Fi / Hotspot delivering **10 MB/s to 50 MB/s** (surpassing the user's 2 MB/s target by up to 25x).
+
+```mermaid
+graph TD
+    A[Phase 1: Turbo Protocol & Crypto Handshake Engine] --> B[Phase 2: Sender Turbo Engine & UI Controls]
+    B --> C[Phase 3: Receiver 1-Second QR Ingestion & File Assembler]
+    C --> D[Phase 4: Android App Packaging & Release v1.0.3]
+```
+
+### 📋 Detailed Implementation Phases & Verification Steps
+
+#### 🔹 Phase 1: Turbo Protocol & Cryptographic Handshake Engine
+* **What is Built**:
+  - `src/core/turbo-protocol.ts`: Binary protocol specification for high-speed offline chunk streaming.
+  - Ephemeral cryptographic session generator: Creates one-time **AES-256-GCM** keys and compacts connection descriptors into a high-density, single-frame pairing token.
+  - Payload integrity: SHA-256 stream hashing and 12-byte IV nonce management.
+* **How to Run & Verify**:
+  - Run terminal verification scripts / unit test suite.
+  - Verify in DevTools Console that pairing tokens are encoded, encrypted, decrypted, and parsed with 100% cryptographic fidelity.
+* **Pass Criteria**:
+  - Zero encryption/decryption mismatches across 1,000 randomized synthetic blocks.
+  - Zero TypeScript compile errors.
+
+#### 🔹 Phase 2: Sender High-Speed Turbo Engine & UI Controls
+* **What is Built**:
+  - `src/modules/send/turbo-sender.ts`: High-speed local peer streaming controller with automatic backpressure control (streaming 64KB–256KB chunks).
+  - Optical Pairing QR component rendering the 1-second optical token on screen.
+  - UI switch on the **Optical Transmitter** page: **"⚡ High-Speed Turbo Mode (10–50 MB/s)"** with visual sticker styling and live throughput telemetry.
+* **How to Run & Verify**:
+  - Open the web application (`http://localhost:5173`).
+  - Drop a test file (e.g. 20 MB–50 MB video or archive).
+  - Toggle **Turbo Mode**.
+* **Pass Criteria**:
+  - Optical pairing QR displays sharply on screen.
+  - Sender diagnostic console shows local stream ready and awaiting receiver handshake.
+  - Zero browser console errors.
+
+#### 🔹 Phase 3: Receiver 1-Second QR Ingestion & Real-Time Assembler
+* **What is Built**:
+  - `src/modules/receive/turbo-receiver.ts`: Specialized fast camera scanner for instant optical pairing token ingestion (< 1 second).
+  - Direct local stream consumer: Connects to Sender endpoint, streams encrypted chunks at maximum line speed, decrypts on-the-fly, validates SHA-256 checksum, and triggers the file save dialog.
+  - UI upgrade on the **Optical Receiver** page: Real-time speed meter (showing actual MB/s), progress bar, and celebratory completion animation.
+* **How to Run & Verify**:
+  - Open the Receiver on mobile (or a second browser tab).
+  - Point the camera at the Sender's Pairing QR.
+  - Verify the optical handshake triggers in under 1 second and the file streams at high speed.
+* **Pass Criteria**:
+  - File arrives with 100% byte integrity (matching SHA-256 checksum).
+  - Speedometer registers speeds well exceeding 2 MB/s.
+
+#### 🔹 Phase 4: Android Mobile Integration & Release v1.0.3
+* **What is Built**:
+  - Add offline local network permissions (`ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `CHANGE_WIFI_MULTICAST_STATE`) in `AndroidManifest.xml`.
+  - Re-sync Capacitor and compile production APK (`app-release.apk`, `versionCode 4`, `versionName 1.0.3`).
+  - Publish GitHub Release **`v1.0.3`** with direct mobile download links.
+* **How to Run & Verify**:
+  - Download and install `v1.0.3` APK on the Android phone.
+  - Connect phone and PC to the same Wi-Fi or turn on phone's personal hotspot.
+  - Beam a 50 MB+ test file and verify high-speed completion on physical mobile hardware.
+* **Pass Criteria**:
+  - APK installs cleanly without "App Not Installed".
+  - Camera scans pairing QR in 1 second and file downloads to phone at high speed.
+
+
