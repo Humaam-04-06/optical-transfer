@@ -13,6 +13,8 @@ import { Toast } from '../../ui/toast.ts';
 import { Alert } from '../../ui/alert.ts';
 import { Icons } from '../../ui/icons.ts';
 import { SoundFX } from '../../ui/audio.ts';
+import { TurboReceiverController, TurboReceiverProgress } from './turbo-receiver.ts';
+import { decodePairingToken, type TurboPairingToken } from '../../core/turbo-protocol.ts';
 
 export class ReceivePage {
   private container: HTMLElement;
@@ -25,6 +27,10 @@ export class ReceivePage {
   private isScanning = false;
   private facingMode: 'environment' | 'user' = 'environment';
   private torchEnabled = false;
+
+  // Turbo Hybrid Engine state
+  private turboReceiver: TurboReceiverController | null = null;
+  private isTurboActive = false;
 
   // Decoding session state
   private activeSessionId: number | null = null;
@@ -217,10 +223,40 @@ export class ReceivePage {
                 <div class="w-16 h-16 rounded-full bg-[#FFFDF5] border-2 border-[#1E293B] shadow-pop flex items-center justify-center text-[#8B5CF6] mx-auto animate-bounce">
                   ${Icons.beam}
                 </div>
-                <h4 class="font-heading font-black text-lg text-[#1E293B]">Listening for Light Stream</h4>
+                <h4 class="font-heading font-black text-lg text-[#1E293B]">Listening for Optical Stream</h4>
                 <p class="font-body text-xs sm:text-sm text-[#64748B] max-w-xs mx-auto">
-                  Hold camera steadily in front of the transmitter screen. The Luby Transform decoder will automatically lock on session packets.
+                  Hold camera steadily in front of transmitter screen. Automatically detects optical fountain QR streams OR 1-second Turbo pairing codes (10–50 MB/s).
                 </p>
+              </div>
+
+              <!-- Turbo Transfer Live Dashboard Card -->
+              <div id="turboTransferCard" class="hidden space-y-4 pt-2">
+                <div class="p-4 rounded-2xl bg-[#ECFDF5] border-2 border-[#1E293B] shadow-pop-sm space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="badge-pill bg-[#34D399] text-[#1E293B] text-[10px] font-black">
+                      ⚡ TURBO HYBRID STREAM
+                    </span>
+                    <span id="turboEndpointBadge" class="font-mono text-[10px] text-[#065F46] font-bold truncate max-w-[140px]">
+                      Local Direct
+                    </span>
+                  </div>
+                  <div class="space-y-1">
+                    <h3 id="turboFileName" class="font-heading font-black text-base text-[#1E293B] truncate">
+                      file.bin
+                    </h3>
+                    <div class="flex items-center justify-between text-xs font-mono text-[#64748B]">
+                      <span id="turboTransferBytes">0 MB / 0 MB</span>
+                      <span id="turboSpeedometer" class="font-bold text-[#059669]">0.0 MB/s</span>
+                    </div>
+                  </div>
+                  <div class="w-full h-3 bg-white border-2 border-[#1E293B] rounded-full overflow-hidden p-0.5 shadow-pop-sm">
+                    <div id="turboProgressBar" class="h-full bg-[#34D399] candy-progress-striped rounded-full transition-all duration-150" style="width: 0%"></div>
+                  </div>
+                  <div class="flex items-center gap-1.5 text-[11px] font-mono text-[#065F46]">
+                    <span class="w-2 h-2 rounded-full bg-[#059669] animate-ping"></span>
+                    <span id="turboStatusHint">AES-256-GCM Direct Ephemeral Stream</span>
+                  </div>
+                </div>
               </div>
 
               <!-- Decryption Passphrase Prompt (Displays when an encrypted stream is captured) -->
@@ -507,6 +543,42 @@ export class ReceivePage {
   }
 
   private handleSymbol(rawBytes: Uint8Array): void {
+    // 1. Check for Turbo Optical Pairing QR Handshake ("SPTB:...")
+    let possibleTurboText: string | null = null;
+    if (
+      rawBytes.length >= 5 &&
+      rawBytes[0] === 0x53 &&
+      rawBytes[1] === 0x50 &&
+      rawBytes[2] === 0x54 &&
+      rawBytes[3] === 0x42 &&
+      rawBytes[4] === 0x3a
+    ) {
+      try {
+        possibleTurboText = new TextDecoder().decode(rawBytes);
+      } catch {
+        possibleTurboText = null;
+      }
+    } else {
+      try {
+        const text = new TextDecoder('utf-8', { fatal: false }).decode(rawBytes);
+        if (text.startsWith('SPTB:')) {
+          possibleTurboText = text;
+        }
+      } catch {}
+    }
+
+    if (possibleTurboText) {
+      const token = decodePairingToken(possibleTurboText);
+      if (token) {
+        this.handleTurboPairing(token);
+        return;
+      }
+    }
+
+    // If Turbo is currently active, ignore standard fountain symbols
+    if (this.isTurboActive) return;
+
+    // 2. Standard Optical Fountain Code Frame Decoding
     const unpacked = unpackFrame(rawBytes);
     if (!unpacked) return;
 
@@ -564,6 +636,124 @@ export class ReceivePage {
 
     if (isComplete) {
       this.onStreamCompleted();
+    }
+  }
+
+  /**
+   * Handles instantaneous optical handshake for High-Speed Turbo Stream (10-50 MB/s)
+   */
+  private async handleTurboPairing(token: TurboPairingToken): Promise<void> {
+    if (this.isTurboActive || this.turboReceiver) return;
+    this.isTurboActive = true;
+
+    SoundFX.playPacketTick();
+    const sizeMB = (token.fs / (1024 * 1024)).toFixed(1);
+    Toast.success(`⚡ Turbo Handshake Locked: "${token.fn}" (${sizeMB} MB)`);
+
+    const reticleHint = this.container.querySelector('#reticleHint');
+    const badgeSessionStatus = this.container.querySelector('#badgeSessionStatus');
+    const receptionStandby = this.container.querySelector('#receptionStandby') as HTMLElement;
+    const turboTransferCard = this.container.querySelector('#turboTransferCard') as HTMLElement;
+    const turboFileName = this.container.querySelector('#turboFileName');
+    const turboEndpointBadge = this.container.querySelector('#turboEndpointBadge');
+
+    if (reticleHint) reticleHint.textContent = `⚡ Turbo Stream: ${token.fn} (${sizeMB} MB)`;
+    if (badgeSessionStatus) {
+      badgeSessionStatus.textContent = '⚡ TURBO ACTIVE';
+      badgeSessionStatus.className = 'badge-pill bg-[#34D399] text-[#1E293B] text-[10px] animate-pulse font-black';
+    }
+
+    if (receptionStandby) receptionStandby.classList.add('hidden');
+    if (turboTransferCard) turboTransferCard.classList.remove('hidden');
+    if (turboFileName) turboFileName.textContent = token.fn;
+    if (turboEndpointBadge && token.endpoints && token.endpoints.length > 0) {
+      turboEndpointBadge.textContent = token.endpoints[0].replace(/^https?:\/\//, '');
+    }
+
+    this.turboReceiver = new TurboReceiverController((prog: TurboReceiverProgress) => {
+      this.renderTurboProgress(prog);
+    });
+
+    try {
+      const result = await this.turboReceiver.start(token);
+
+      confetti({
+        particleCount: 120,
+        spread: 90,
+        origin: { y: 0.6 },
+      });
+      SoundFX.playSuccessFanfare();
+
+      this.completedFile = {
+        metadata: {
+          name: result.name,
+          type: result.type,
+          sha256: result.sha256,
+          originalSize: result.size,
+          compressed: false,
+        },
+        bytes: result.bytes,
+      };
+
+      if (badgeSessionStatus) {
+        badgeSessionStatus.textContent = `⚡ TURBO VERIFIED (${result.averageSpeedMBps.toFixed(1)} MB/s)`;
+        badgeSessionStatus.className = 'badge-pill bg-[#8B5CF6] text-white text-[10px] font-black';
+      }
+
+      this.displayCompletedFile();
+      Toast.success(`⚡ Transfer verified at ${result.averageSpeedMBps.toFixed(1)} MB/s!`);
+    } catch (err: any) {
+      if (this.turboReceiver?.getState() === 'ABORTED') return;
+      SoundFX.playError();
+      Alert.warning('Turbo Stream Error', `Failed to receive payload: ${err.message}`);
+      this.resetTransfer();
+    }
+  }
+
+  private renderTurboProgress(prog: TurboReceiverProgress): void {
+    const hudSpeed = this.container.querySelector('#hudSpeed');
+    const hudBlocks = this.container.querySelector('#hudBlocks');
+    const hudPercent = this.container.querySelector('#hudPercent');
+    const hudFrames = this.container.querySelector('#hudFrames');
+    const hudProgressBar = this.container.querySelector('#hudProgressBar') as HTMLElement;
+    const hudProgressText = this.container.querySelector('#hudProgressText');
+
+    const turboTransferBytes = this.container.querySelector('#turboTransferBytes');
+    const turboSpeedometer = this.container.querySelector('#turboSpeedometer');
+    const turboProgressBar = this.container.querySelector('#turboProgressBar') as HTMLElement;
+    const turboStatusHint = this.container.querySelector('#turboStatusHint');
+
+    const receivedMB = (prog.receivedBytes / (1024 * 1024)).toFixed(1);
+    const totalMB = (prog.totalBytes / (1024 * 1024)).toFixed(1);
+
+    if (hudSpeed) hudSpeed.textContent = `${prog.speedMBps.toFixed(1)} MB/s`;
+    if (hudBlocks) hudBlocks.textContent = `${prog.currentChunk} / ${prog.totalChunks}`;
+    if (hudPercent) hudPercent.textContent = `${prog.percent}%`;
+    if (hudFrames) hudFrames.textContent = `${prog.currentChunk}`;
+    if (hudProgressBar) hudProgressBar.style.width = `${prog.percent}%`;
+    if (hudProgressText) {
+      if (prog.state === 'CONNECTING') {
+        hudProgressText.textContent = 'Connecting to local high-speed pipeline...';
+      } else if (prog.state === 'VERIFYING') {
+        hudProgressText.textContent = 'Verifying SHA-256 cryptographic checksum...';
+      } else {
+        hudProgressText.textContent = `Turbo stream: ${receivedMB} MB of ${totalMB} MB (${prog.percent}%)`;
+      }
+    }
+
+    if (turboTransferBytes) turboTransferBytes.textContent = `${receivedMB} MB / ${totalMB} MB`;
+    if (turboSpeedometer) turboSpeedometer.textContent = `${prog.speedMBps.toFixed(1)} MB/s`;
+    if (turboProgressBar) turboProgressBar.style.width = `${prog.percent}%`;
+    if (turboStatusHint) {
+      if (prog.state === 'CONNECTING') {
+        turboStatusHint.textContent = `Connecting to ${prog.endpoint}...`;
+      } else if (prog.state === 'VERIFYING') {
+        turboStatusHint.textContent = 'Verifying AES-256-GCM integrity & SHA-256 hash...';
+      } else if (prog.state === 'COMPLETED') {
+        turboStatusHint.textContent = 'All chunks decrypted and cryptographically verified!';
+      } else {
+        turboStatusHint.textContent = `Direct stream active (${prog.endpoint})`;
+      }
     }
   }
 
@@ -659,12 +849,19 @@ export class ReceivePage {
 
     (this.container.querySelector('#receptionStandby') as HTMLElement).classList.add('hidden');
     (this.container.querySelector('#decryptPrompt') as HTMLElement).classList.add('hidden');
+    const turboTransferCard = this.container.querySelector('#turboTransferCard') as HTMLElement;
+    if (turboTransferCard) turboTransferCard.classList.add('hidden');
+
     const resultViewer = this.container.querySelector('#resultViewer') as HTMLElement;
     resultViewer.classList.remove('hidden');
 
     const meta = this.completedFile.metadata;
+    const sizeText = this.completedFile.bytes.length >= 1024 * 1024
+      ? `${(this.completedFile.bytes.length / (1024 * 1024)).toFixed(2)} MB`
+      : `${(this.completedFile.bytes.length / 1024).toFixed(1)} KB`;
+
     (this.container.querySelector('#resFileName') as HTMLElement).textContent = meta.name;
-    (this.container.querySelector('#resFileSize') as HTMLElement).textContent = `${(this.completedFile.bytes.length / 1024).toFixed(1)} KB`;
+    (this.container.querySelector('#resFileSize') as HTMLElement).textContent = sizeText;
     (this.container.querySelector('#resFileSha') as HTMLElement).textContent = `SHA: ${meta.sha256.substring(0, 10)}...`;
 
     // Create Blob URL for download & preview
@@ -697,6 +894,12 @@ export class ReceivePage {
       this.activeBlobUrl = null;
     }
 
+    if (this.turboReceiver) {
+      this.turboReceiver.burn();
+      this.turboReceiver = null;
+    }
+    this.isTurboActive = false;
+
     if (this.completedFile) {
       this.completedFile.bytes.fill(0); // Zero out buffer in RAM
       if (this.completedFile.rawCiphertext) {
@@ -710,6 +913,12 @@ export class ReceivePage {
   }
 
   private resetTransfer(): void {
+    if (this.turboReceiver) {
+      this.turboReceiver.abort();
+      this.turboReceiver = null;
+    }
+    this.isTurboActive = false;
+
     this.activeSessionId = null;
     this.decoder = null;
     this.completedFile = null;
@@ -724,6 +933,7 @@ export class ReceivePage {
     const hudProgressText = this.container.querySelector('#hudProgressText');
     const reticleHint = this.container.querySelector('#reticleHint');
     const badgeSessionStatus = this.container.querySelector('#badgeSessionStatus');
+    const turboTransferCard = this.container.querySelector('#turboTransferCard') as HTMLElement;
 
     if (hudSpeed) hudSpeed.textContent = '0.0 KB/s';
     if (hudBlocks) hudBlocks.textContent = '0 / 0';
@@ -737,6 +947,7 @@ export class ReceivePage {
       badgeSessionStatus.className = 'badge-pill bg-[#F1F5F9] text-[#1E293B] text-[10px]';
     }
 
+    if (turboTransferCard) turboTransferCard.classList.add('hidden');
     (this.container.querySelector('#resultViewer') as HTMLElement).classList.add('hidden');
     (this.container.querySelector('#decryptPrompt') as HTMLElement).classList.add('hidden');
     (this.container.querySelector('#receptionStandby') as HTMLElement).classList.remove('hidden');
@@ -744,6 +955,12 @@ export class ReceivePage {
 
   public destroy(): void {
     this.isScanning = false;
+    if (this.turboReceiver) {
+      this.turboReceiver.abort();
+      this.turboReceiver = null;
+    }
+    this.isTurboActive = false;
+
     if (this.mediaStream) {
       this.mediaStream.getTracks().forEach((t) => t.stop());
       this.mediaStream = null;

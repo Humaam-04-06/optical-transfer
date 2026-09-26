@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import os from 'os';
 
 function turboStreamPlugin(): Plugin {
-  const sessions = new Map<string, { token: any; chunks: Buffer[]; lastActive: number }>();
+  const sessions = new Map<string, { token: any; chunks: Buffer[]; lastActive: number; servedIndices: Set<number> }>();
 
   // Cleanup inactive sessions older than 30 minutes
   setInterval(() => {
@@ -60,6 +60,7 @@ function turboStreamPlugin(): Plugin {
                 token,
                 chunks: bufferChunks,
                 lastActive: Date.now(),
+                servedIndices: new Set<number>(),
               });
               res.setHeader('Content-Type', 'application/json');
               res.end(JSON.stringify({ ok: true, sid, totalChunks: bufferChunks.length }));
@@ -71,7 +72,7 @@ function turboStreamPlugin(): Plugin {
           return;
         }
 
-        // 3. Metadata Endpoint
+        // 3. Metadata & Progress Endpoint
         if (url.startsWith('/api/turbo/meta/')) {
           const sid = url.split('/')[4]?.split('?')[0];
           const session = sessions.get(sid);
@@ -81,11 +82,28 @@ function turboStreamPlugin(): Plugin {
             return;
           }
           res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ token: session.token }));
+          res.end(JSON.stringify({
+            token: session.token,
+            chunksServed: session.servedIndices.size,
+            totalChunks: session.chunks.length,
+            isComplete: session.servedIndices.size >= session.chunks.length,
+          }));
           return;
         }
 
-        // 4. Binary Chunk Download Endpoint
+        // 4. Complete Notification Endpoint
+        if (url.startsWith('/api/turbo/complete/')) {
+          const sid = url.split('/')[4]?.split('?')[0];
+          const session = sessions.get(sid);
+          if (session) {
+            session.lastActive = Date.now();
+          }
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ ok: true }));
+          return;
+        }
+
+        // 5. Binary Chunk Download Endpoint
         if (url.startsWith('/api/turbo/chunk/')) {
           const parts = url.split('/');
           const sid = parts[4];
@@ -97,6 +115,7 @@ function turboStreamPlugin(): Plugin {
             return;
           }
           session.lastActive = Date.now();
+          session.servedIndices.add(index);
           res.setHeader('Content-Type', 'application/octet-stream');
           res.setHeader('Content-Length', session.chunks[index].length);
           res.end(session.chunks[index]);

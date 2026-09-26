@@ -10,8 +10,8 @@ import QRCode from 'qrcode';
 import {
   createTurboSession,
   encryptTurboChunk,
-  TurboSession,
-  TurboPairingToken,
+  type TurboSession,
+  type TurboPairingToken,
 } from '../../core/turbo-protocol.ts';
 
 export type TurboSenderState =
@@ -166,16 +166,43 @@ export class TurboSenderController {
         const res = await fetch(`/api/turbo/meta/${this.session.token.sid}`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
-          // Active session pinged by mobile receiver
-          if (this.state === 'READY_PAIRING') {
-            this.startTime = performance.now();
-            this.updateState('TRANSFERRING', 5, 0, this.session.token.fs);
+          const chunksServed = data.chunksServed || 0;
+          const totalChunks = data.totalChunks || this.session.chunks.length;
+
+          if (chunksServed > 0) {
+            if (this.state === 'READY_PAIRING') {
+              this.startTime = performance.now();
+              this.lastSpeedSampleTime = performance.now();
+            }
+
+            const sentBytes = Math.min(this.session.token.fs, chunksServed * this.session.token.cs);
+            const percent = Math.min(100, Math.round((chunksServed / totalChunks) * 100));
+
+            // Calculate throughput
+            const now = performance.now();
+            const timeDelta = (now - this.lastSpeedSampleTime) / 1000;
+            if (timeDelta >= 0.5) {
+              const bytesDelta = sentBytes - this.lastTransferredBytes;
+              this.currentSpeedMBps = Math.max(0, (bytesDelta / (1024 * 1024)) / timeDelta);
+              this.lastSpeedSampleTime = now;
+              this.lastTransferredBytes = sentBytes;
+            }
+
+            if (chunksServed >= totalChunks || data.isComplete) {
+              this.updateState('COMPLETED', 100, this.session.token.fs, this.session.token.fs);
+              if (this.pollInterval) {
+                clearInterval(this.pollInterval);
+                this.pollInterval = null;
+              }
+            } else {
+              this.updateState('TRANSFERRING', percent, sentBytes, this.session.token.fs);
+            }
           }
         }
       } catch {
         // Local polling error
       }
-    }, 1000);
+    }, 600);
   }
 
   private updateState(

@@ -29,8 +29,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
-    "test:turbo": "node --experimental-strip-types -e \"import('./src/core/test-turbo.ts').then(m => m.runTurboProtocolTests()).then(r => console.log('RESULT:', r.passed ? 'ALL TESTS PASSED' : 'FAILED')).catch(err => { console.error(err); process.exit(1); })\""
+    "test:turbo": "node --experimental-strip-types -e \"import('./src/core/test-turbo.ts').then(m => m.runTurboProtocolTests()).then(r => console.log('RESULT:', r.passed ? 'ALL TESTS PASSED' : 'FAILED')).catch(err => { console.error(err); process.exit(1); })\"",
+    "test:turbo:e2e": "node --experimental-strip-types -e \"import('./src/core/test-turbo-e2e.ts').then(m => m.runTurboE2E()).then(r => console.log('RESULT:', r ? 'ALL TESTS PASSED' : 'FAILED')).catch(err => { console.error(err); process.exit(1); })\""
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
