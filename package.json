@@ -1,7 +1,7 @@
 {
   "name": "spectrabeam-optical-transfer",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "High-speed zero-network optical air-gap data transfer system using Luby Transform fountain codes, WebAssembly ZXing, and SpectraVault AES-256-GCM encryption.",
   "keywords": [
     "air-gap",
