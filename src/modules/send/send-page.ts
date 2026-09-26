@@ -12,10 +12,12 @@ import { ProtocolFlags, WireHeader } from '../../core/types.ts';
 import { Toast } from '../../ui/toast.ts';
 import { Alert } from '../../ui/alert.ts';
 import { Icons } from '../../ui/icons.ts';
+import { TurboSenderController, TurboSenderProgress } from './turbo-sender.ts';
 
 export class SendPage {
   private container: HTMLElement;
   private canvas: HTMLCanvasElement | null = null;
+  private turboCanvas: HTMLCanvasElement | null = null;
   private animId: number | null = null;
   private isStreaming = false;
 
@@ -27,6 +29,13 @@ export class SendPage {
   private isChromaRGB = false;
   private isAntiSurveillance = false;
   private isInverted = false;
+
+  // Hybrid Turbo Mode (10-50 MB/s)
+  private isTurboMode = false;
+  private turboSender: TurboSenderController | null = null;
+  private rawLoadedBytes: Uint8Array | null = null;
+  private rawLoadedName = '';
+  private rawLoadedType = '';
 
   // Active encoder state
   private encoder: FountainEncoder | null = null;
@@ -145,6 +154,31 @@ export class SendPage {
               </div>
             </div>
 
+            <!-- Hybrid Turbo Mode (10-50 MB/s) Card -->
+            <div class="card-sticker space-y-2 border-2 border-[#1E293B]">
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-10 h-10 rounded-xl bg-[#34D399] border-2 border-[#1E293B] shadow-pop-sm flex items-center justify-center flex-shrink-0 text-[#1E293B]">
+                    ${Icons.zap}
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <span class="badge-pill bg-[#8B5CF6] text-white text-[9px] py-0.5 px-1.5 font-bold">10-50 MB/s</span>
+                      <strong class="font-heading font-black text-sm text-[#1E293B]">Hybrid Turbo Mode</strong>
+                    </div>
+                    <p class="font-body text-xs text-[#64748B]">1-Second QR pairing + local high-speed encrypted pipe</p>
+                  </div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggleTurbo" />
+                  <span class="slider slider-mint"></span>
+                </label>
+              </div>
+              <div id="turboHint" class="hidden text-[11px] font-mono text-[#065F46] bg-[#ECFDF5] p-2.5 rounded-xl border border-[#A7F3D0] mt-2">
+                ⚡ <strong>Turbo Activated</strong>: Point your mobile camera at the Pairing QR code for 1 second to start transfer at 10–50 MB/s!
+              </div>
+            </div>
+
             <!-- Transmission Settings Card -->
             <div class="card-sticker space-y-4">
               <div class="flex items-center gap-2 border-b-2 border-[#1E293B] pb-2.5">
@@ -232,6 +266,20 @@ export class SendPage {
                   <h3 class="font-heading font-black text-xl text-[#1E293B] mb-1">Awaiting Data Payload</h3>
                   <p class="font-body text-xs sm:text-sm text-[#64748B] max-w-xs">
                     Drop a file or enter text on the left to start beaming fountain-coded light
+                  </p>
+                </div>
+
+                <!-- Hybrid Turbo Pairing Overlay -->
+                <div id="turboPairingOverlay" class="hidden absolute inset-0 bg-white flex flex-col items-center justify-center p-4 text-center z-20">
+                  <div class="w-full max-w-[320px] aspect-square mx-auto bg-white rounded-2xl border-2 border-[#1E293B] shadow-pop-sm p-2 flex items-center justify-center">
+                    <canvas id="turboCanvas" width="400" height="400" class="w-full h-full object-contain"></canvas>
+                  </div>
+                  <div class="mt-3 flex items-center justify-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-ping"></span>
+                    <span class="font-heading font-black text-xs text-[#1E293B]" id="turboOverlayStatus">AWAITING CAMERA SCAN (10–50 MB/s)</span>
+                  </div>
+                  <p class="font-body text-[11px] text-[#64748B] mt-1 max-w-xs">
+                    Point your mobile camera at this QR code for 1 second to pair and stream at maximum speed!
                   </p>
                 </div>
               </div>
@@ -356,6 +404,28 @@ export class SendPage {
       this.blockSize = parseInt(selectBlockSize.value, 10);
     });
 
+    const toggleTurbo = this.container.querySelector('#toggleTurbo') as HTMLInputElement;
+    const turboHint = this.container.querySelector('#turboHint') as HTMLElement;
+    this.turboCanvas = this.container.querySelector('#turboCanvas') as HTMLCanvasElement;
+
+    toggleTurbo.addEventListener('change', () => {
+      this.isTurboMode = toggleTurbo.checked;
+      turboHint.classList.toggle('hidden', !this.isTurboMode);
+      Toast.show(
+        this.isTurboMode
+          ? '⚡ Hybrid Turbo Mode Activated (10–50 MB/s speed)'
+          : 'Standard Fountain Mode Active',
+        'info'
+      );
+      if (this.rawLoadedBytes) {
+        if (this.isTurboMode) {
+          this.startTurboSession();
+        } else {
+          this.revertToFountainStream();
+        }
+      }
+    });
+
     btnInvert.addEventListener('click', () => {
       this.isInverted = !this.isInverted;
       btnInvert.classList.toggle('btn-candy-pink', this.isInverted);
@@ -397,6 +467,14 @@ export class SendPage {
 
   private async preparePayload(rawBytes: Uint8Array, fileName: string, mimeType: string): Promise<void> {
     this.stopStream();
+    this.rawLoadedBytes = rawBytes;
+    this.rawLoadedName = fileName;
+    this.rawLoadedType = mimeType;
+
+    if (this.isTurboMode) {
+      await this.startTurboSession();
+      return;
+    }
 
     let finalPayload = rawBytes;
 
@@ -526,7 +604,98 @@ export class SendPage {
     }
   }
 
+  private async startTurboSession(): Promise<void> {
+    if (!this.rawLoadedBytes) return;
+    this.stopStream();
+
+    const standbyPlaceholder = this.container.querySelector('#standbyPlaceholder') as HTMLElement;
+    const turboPairingOverlay = this.container.querySelector('#turboPairingOverlay') as HTMLElement;
+    const turboOverlayStatus = this.container.querySelector('#turboOverlayStatus') as HTMLElement;
+    const streamInfo = this.container.querySelector('#streamInfo') as HTMLElement;
+
+    if (standbyPlaceholder) standbyPlaceholder.style.display = 'none';
+    if (turboPairingOverlay) turboPairingOverlay.classList.remove('hidden');
+
+    if (!this.turboCanvas) {
+      this.turboCanvas = this.container.querySelector('#turboCanvas') as HTMLCanvasElement;
+    }
+
+    if (this.turboSender) {
+      this.turboSender.destroy();
+    }
+
+    this.turboSender = new TurboSenderController((prog) => {
+      if (prog.state === 'READY_PAIRING') {
+        if (turboOverlayStatus) turboOverlayStatus.textContent = 'AWAITING CAMERA SCAN (10–50 MB/s)';
+      } else if (prog.state === 'TRANSFERRING') {
+        if (turboOverlayStatus) turboOverlayStatus.textContent = `STREAMING ENCRYPTED CHUNKS...`;
+        const framesEl = this.container.querySelector('#valFrames');
+        if (framesEl) framesEl.textContent = `${prog.percent}%`;
+        const speedEl = this.container.querySelector('#valTargetSpeed');
+        if (speedEl) speedEl.textContent = `${prog.speedMBps > 0 ? prog.speedMBps.toFixed(1) + ' MB/s' : '10-50 MB/s'}`;
+      } else if (prog.state === 'COMPLETED') {
+        if (turboOverlayStatus) turboOverlayStatus.textContent = '✅ TRANSFER COMPLETED';
+        Toast.success('Turbo transfer successfully completed!');
+      } else if (prog.state === 'ERROR') {
+        if (turboOverlayStatus) turboOverlayStatus.textContent = `❌ ${prog.errorMessage || 'Transfer Error'}`;
+      }
+    });
+
+    try {
+      if (turboOverlayStatus) turboOverlayStatus.textContent = 'ENCRYPTING & GENERATING TOKEN...';
+      const session = await this.turboSender.prepareFile({
+        name: this.rawLoadedName,
+        type: this.rawLoadedType,
+        data: this.rawLoadedBytes,
+      });
+
+      if (this.turboCanvas) {
+        await this.turboSender.renderPairingQr(this.turboCanvas);
+      }
+
+      // Update UI Telemetry
+      const valSession = this.container.querySelector('#valSession') as HTMLElement;
+      if (valSession) valSession.textContent = `SPTB-${session.token.sid.toUpperCase()}`;
+
+      const valK = this.container.querySelector('#valK') as HTMLElement;
+      if (valK) valK.textContent = `${session.token.tc} chunks`;
+
+      const valSpeed = this.container.querySelector('#valTargetSpeed') as HTMLElement;
+      if (valSpeed) valSpeed.textContent = `10–50 MB/s (Turbo)`;
+
+      streamInfo.innerHTML = `
+        <div class="flex items-center gap-1.5">
+          <span class="inline-block bg-[#8B5CF6] text-white px-2.5 py-0.5 rounded-full border border-[#1E293B] text-xs font-heading font-black">
+            ⚡ TURBO READY
+          </span>
+          <span class="text-xs text-[#64748B] font-mono">${this.rawLoadedName} (${(this.rawLoadedBytes.length / (1024 * 1024)).toFixed(2)} MB)</span>
+        </div>
+      `;
+
+      Toast.success(`Turbo Session ready! Scan Pairing QR with mobile receiver.`);
+    } catch (err: any) {
+      Toast.error(`Turbo Error: ${err.message}`);
+      Alert.warning('Turbo Session Failed', err.message);
+    }
+  }
+
+  private revertToFountainStream(): void {
+    if (this.turboSender) {
+      this.turboSender.destroy();
+      this.turboSender = null;
+    }
+    const turboPairingOverlay = this.container.querySelector('#turboPairingOverlay') as HTMLElement;
+    if (turboPairingOverlay) turboPairingOverlay.classList.add('hidden');
+    if (this.rawLoadedBytes) {
+      this.preparePayload(this.rawLoadedBytes, this.rawLoadedName, this.rawLoadedType);
+    }
+  }
+
   public destroy(): void {
     this.stopStream();
+    if (this.turboSender) {
+      this.turboSender.destroy();
+      this.turboSender = null;
+    }
   }
 }
