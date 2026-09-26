@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.humaam.spectrabeam',
+  appId: 'com.humaam.spectrabeam.app',
   appName: 'SpectraBeam',
   webDir: 'dist',
   server: {
