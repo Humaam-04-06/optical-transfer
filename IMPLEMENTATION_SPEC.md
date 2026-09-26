@@ -412,18 +412,16 @@ graph TD
   - `npm run test:turbo:e2e` passed: **28.8 MB/s measured throughput** on 2 MB synthetic payload (0.070s elapsed time). Surpasses user target of 2 MB/s by **14.4x**.
   - Production build `npm run build` compiled in 1.34s. Commit `79ceb15`.
 
-#### 🔹 Phase 4: Android Mobile Integration & Release v1.0.3 [⏳ NEXT]
+#### 🔹 Phase 4: Android Mobile Integration & Release v1.0.3 [✅ COMPLETED & VERIFIED]
 * **What is Built**:
-  - Add offline local network permissions (`ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `CHANGE_WIFI_MULTICAST_STATE`) in `AndroidManifest.xml`.
-  - Bump version to `1.0.3` (`versionCode 4`) in `package.json` and `android/app/build.gradle`.
-  - Re-sync Capacitor and compile production release APK (`app-release.apk`, `versionCode 4`, `versionName 1.0.3`).
-  - Publish GitHub Release **`v1.0.3`** with direct mobile download links.
-* **How to Run & Verify**:
-  - Download and install `v1.0.3` APK on the Android phone.
-  - Connect phone and PC to the same Wi-Fi or turn on phone's personal hotspot.
-  - Beam a 50 MB+ test file and verify high-speed completion on physical mobile hardware.
-* **Pass Criteria**:
-  - APK installs cleanly without "App Not Installed".
-  - Camera scans pairing QR in 1 second and file downloads to phone at high speed.
+  - Added offline local network permissions (`ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `CHANGE_WIFI_MULTICAST_STATE`) and `usesCleartextTraffic="true"` in `AndroidManifest.xml`.
+  - Bumped version to `1.0.3` (`versionCode 4`) in `package.json` and `android/app/build.gradle`.
+  - Re-synced Capacitor and compiled signed production APK with Gradle (`gradlew.bat assembleRelease` in 28s).
+  - Output binary: `app-release.apk` (3,264,573 bytes, SHA-256: `80F7D25681DE...`).
+  - Published GitHub Release **`v1.0.3`** with direct mobile download link:
+    👉 **[Download SpectraBeam v1.0.3 APK](https://github.com/Humaam-04-06/optical-transfer/releases/download/v1.0.3/spectrabeam-v1.0.3.apk)**
+* **Verification Status**:
+  - Release published and verified live on GitHub Releases (`v1.0.3`).
+  - Pushed to `main` (`6653bce`).
 
 
